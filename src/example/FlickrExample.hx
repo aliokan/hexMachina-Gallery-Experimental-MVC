@@ -51,7 +51,5 @@ class FlickrExample
 		normalParser.parse( applicationAssembler, xml );
 		
 		applicationAssembler.buildEverything();
-		
-		
 	}
 }

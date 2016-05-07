@@ -979,11 +979,9 @@ example_module_gallery_IGalleryModule.__name__ = ["example","module","gallery","
 example_module_gallery_IGalleryModule.__interfaces__ = [hex_module_IModule];
 var example_module_gallery_GalleryModule = function(serviceConfig) {
 	hex_module_Module.call(this);
-	this.getLogger().debug("Hello",{ fileName : "GalleryModule.hx", lineNumber : 25, className : "example.module.gallery.GalleryModule", methodName : "new"});
 	this._addStatefulConfigs([serviceConfig]);
-	this._addStatelessConfigClasses([example_module_gallery__$GalleryModule_GalleryCommandConfig,example_module_gallery__$GalleryModule_GalleryModelConfig]);
+	this._addStatelessConfigClasses([example_module_gallery__$GalleryModule_GalleryModuleConfig]);
 	this.buildView();
-	this._dispatchPrivateMessage(example_module_gallery_message_GalleryModuleMessage.LOAD_PHOTOS);
 };
 $hxClasses["example.module.gallery.GalleryModule"] = example_module_gallery_GalleryModule;
 example_module_gallery_GalleryModule.__name__ = ["example","module","gallery","GalleryModule"];
@@ -992,6 +990,7 @@ example_module_gallery_GalleryModule.__super__ = hex_module_Module;
 example_module_gallery_GalleryModule.prototype = $extend(hex_module_Module.prototype,{
 	_getRuntimeDependencies: function() {
 		var rd = new hex_module_dependency_RuntimeDependencies();
+		rd.addServiceDependencies([example_module_gallery_service_IGetPhotosService]);
 		return rd;
 	}
 	,buildView: function() {
@@ -1009,42 +1008,20 @@ hex_config_stateless_IStatelessConfig.prototype = {
 	configure: null
 	,__class__: hex_config_stateless_IStatelessConfig
 };
-var hex_config_stateless_StatelessCommandConfig = function() {
+var hex_config_stateless_StatelessModuleConfig = function() {
 };
-$hxClasses["hex.config.stateless.StatelessCommandConfig"] = hex_config_stateless_StatelessCommandConfig;
-hex_config_stateless_StatelessCommandConfig.__name__ = ["hex","config","stateless","StatelessCommandConfig"];
-hex_config_stateless_StatelessCommandConfig.__interfaces__ = [hex_config_stateless_IStatelessConfig];
-hex_config_stateless_StatelessCommandConfig.prototype = {
-	frontController: null
-	,configure: function() {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException("'configure' is not implemented",{ fileName : "StatelessCommandConfig.hx", lineNumber : 30, className : "hex.config.stateless.StatelessCommandConfig", methodName : "configure"}));
-	}
-	,map: function(messageType,commandClass) {
-		return this.frontController.map(messageType,commandClass);
-	}
-	,__class__: hex_config_stateless_StatelessCommandConfig
-};
-var example_module_gallery__$GalleryModule_GalleryCommandConfig = function() {
-	hex_config_stateless_StatelessCommandConfig.call(this);
-};
-$hxClasses["example.module.gallery._GalleryModule.GalleryCommandConfig"] = example_module_gallery__$GalleryModule_GalleryCommandConfig;
-example_module_gallery__$GalleryModule_GalleryCommandConfig.__name__ = ["example","module","gallery","_GalleryModule","GalleryCommandConfig"];
-example_module_gallery__$GalleryModule_GalleryCommandConfig.__super__ = hex_config_stateless_StatelessCommandConfig;
-example_module_gallery__$GalleryModule_GalleryCommandConfig.prototype = $extend(hex_config_stateless_StatelessCommandConfig.prototype,{
-	configure: function() {
-		this.map(example_module_gallery_message_GalleryModuleMessage.LOAD_PHOTOS,example_module_gallery_controller_LoadPhotosCommand);
-	}
-	,__class__: example_module_gallery__$GalleryModule_GalleryCommandConfig
-});
-var hex_config_stateless_StatelessModelConfig = function() {
-};
-$hxClasses["hex.config.stateless.StatelessModelConfig"] = hex_config_stateless_StatelessModelConfig;
-hex_config_stateless_StatelessModelConfig.__name__ = ["hex","config","stateless","StatelessModelConfig"];
-hex_config_stateless_StatelessModelConfig.__interfaces__ = [hex_config_stateless_IStatelessConfig];
-hex_config_stateless_StatelessModelConfig.prototype = {
+$hxClasses["hex.config.stateless.StatelessModuleConfig"] = hex_config_stateless_StatelessModuleConfig;
+hex_config_stateless_StatelessModuleConfig.__name__ = ["hex","config","stateless","StatelessModuleConfig"];
+hex_config_stateless_StatelessModuleConfig.__interfaces__ = [hex_config_stateless_IStatelessConfig];
+hex_config_stateless_StatelessModuleConfig.prototype = {
 	injector: null
 	,configure: function() {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".configure must be overridden",{ fileName : "StatelessModelConfig.hx", lineNumber : 24, className : "hex.config.stateless.StatelessModelConfig", methodName : "configure"}));
+		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".configure must be overridden",{ fileName : "StatelessModuleConfig.hx", lineNumber : 23, className : "hex.config.stateless.StatelessModuleConfig", methodName : "configure"}));
+	}
+	,mapController: function(controllerInterface,controllerClass,name) {
+		if(name == null) name = "";
+		var instance = this.injector.instantiateUnmapped(controllerClass);
+		this.injector.mapToValue(controllerInterface,instance,name);
 	}
 	,mapModel: function(modelInterface,modelClass,name) {
 		if(name == null) name = "";
@@ -1052,19 +1029,58 @@ hex_config_stateless_StatelessModelConfig.prototype = {
 		this.injector.mapToValue(modelInterface,instance,name);
 		this.injector.mapToValue(Type.resolveClass(Type.getClassName(modelInterface) + "RO"),instance);
 	}
-	,__class__: hex_config_stateless_StatelessModelConfig
+	,__class__: hex_config_stateless_StatelessModuleConfig
 };
-var example_module_gallery__$GalleryModule_GalleryModelConfig = function() {
-	hex_config_stateless_StatelessModelConfig.call(this);
+var example_module_gallery__$GalleryModule_GalleryModuleConfig = function() {
+	hex_config_stateless_StatelessModuleConfig.call(this);
 };
-$hxClasses["example.module.gallery._GalleryModule.GalleryModelConfig"] = example_module_gallery__$GalleryModule_GalleryModelConfig;
-example_module_gallery__$GalleryModule_GalleryModelConfig.__name__ = ["example","module","gallery","_GalleryModule","GalleryModelConfig"];
-example_module_gallery__$GalleryModule_GalleryModelConfig.__super__ = hex_config_stateless_StatelessModelConfig;
-example_module_gallery__$GalleryModule_GalleryModelConfig.prototype = $extend(hex_config_stateless_StatelessModelConfig.prototype,{
+$hxClasses["example.module.gallery._GalleryModule.GalleryModuleConfig"] = example_module_gallery__$GalleryModule_GalleryModuleConfig;
+example_module_gallery__$GalleryModule_GalleryModuleConfig.__name__ = ["example","module","gallery","_GalleryModule","GalleryModuleConfig"];
+example_module_gallery__$GalleryModule_GalleryModuleConfig.__super__ = hex_config_stateless_StatelessModuleConfig;
+example_module_gallery__$GalleryModule_GalleryModuleConfig.prototype = $extend(hex_config_stateless_StatelessModuleConfig.prototype,{
 	configure: function() {
 		this.mapModel(example_module_gallery_model_IGalleryModel,example_module_gallery_model_GalleryModel);
+		this.mapController(example_module_gallery_controller_IGalleryController,example_module_gallery_controller_GalleryController);
 	}
-	,__class__: example_module_gallery__$GalleryModule_GalleryModelConfig
+	,__class__: example_module_gallery__$GalleryModule_GalleryModuleConfig
+});
+var hex_control_controller_IController = function() { };
+$hxClasses["hex.control.controller.IController"] = hex_control_controller_IController;
+hex_control_controller_IController.__name__ = ["hex","control","controller","IController"];
+var hex_control_controller_Controller = function() {
+};
+$hxClasses["hex.control.controller.Controller"] = hex_control_controller_Controller;
+hex_control_controller_Controller.__name__ = ["hex","control","controller","Controller"];
+hex_control_controller_Controller.__interfaces__ = [hex_control_controller_IController];
+hex_control_controller_Controller.prototype = {
+	module: null
+	,injector: null
+	,__class__: hex_control_controller_Controller
+};
+var example_module_gallery_controller_IGalleryController = function() { };
+$hxClasses["example.module.gallery.controller.IGalleryController"] = example_module_gallery_controller_IGalleryController;
+example_module_gallery_controller_IGalleryController.__name__ = ["example","module","gallery","controller","IGalleryController"];
+example_module_gallery_controller_IGalleryController.__interfaces__ = [hex_control_controller_IController];
+example_module_gallery_controller_IGalleryController.prototype = {
+	loadPhotos: null
+	,__class__: example_module_gallery_controller_IGalleryController
+};
+var example_module_gallery_controller_GalleryController = function() {
+	hex_control_controller_Controller.call(this);
+};
+$hxClasses["example.module.gallery.controller.GalleryController"] = example_module_gallery_controller_GalleryController;
+example_module_gallery_controller_GalleryController.__name__ = ["example","module","gallery","controller","GalleryController"];
+example_module_gallery_controller_GalleryController.__interfaces__ = [example_module_gallery_controller_IGalleryController];
+example_module_gallery_controller_GalleryController.__super__ = hex_control_controller_Controller;
+example_module_gallery_controller_GalleryController.prototype = $extend(hex_control_controller_Controller.prototype,{
+	loadPhotos: function() {
+		var command = this.injector.getOrCreateNewInstance(example_module_gallery_controller_LoadPhotosCommand);
+		var isAsync = js_Boot.__instanceof(command,hex_control_async_IAsyncCommand);
+		if(isAsync) command.preExecute();
+		Reflect.callMethod(command,Reflect.field(command,command.executeMethodName),[]);
+		return new hex_control_controller_ControllerResponder();
+	}
+	,__class__: example_module_gallery_controller_GalleryController
 });
 var hex_control_command_ICommand = function() { };
 $hxClasses["hex.control.command.ICommand"] = hex_control_command_ICommand;
@@ -1125,38 +1141,24 @@ example_module_gallery_controller_LoadPhotosCommand.prototype = $extend(hex_cont
 	photosService: null
 	,galleryModel: null
 	,execute: function(request) {
-		hex_log_Logger.DEBUG("LoadPhotosCommand execute",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 34, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "execute"});
+		hex_log_Logger.DEBUG("LoadPhotosCommand execute",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 33, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "execute"});
 		this.photosService.addHTTPServiceListener(this);
 		this.photosService.call();
 	}
 	,onServiceComplete: function(service) {
-		hex_log_Logger.DEBUG(this.galleryModel,null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 42, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "onServiceComplete"});
-		this.galleryModel.setPhotos((js_Boot.__cast(service , example_module_gallery_service_IGetPhotosService)).getPhotos());
+		this.galleryModel.setPhotos(this.photosService.getPhotos());
 	}
 	,onServiceFail: function(service) {
-		hex_log_Logger.DEBUG("onServiceFail",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 48, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "onServiceFail"});
+		hex_log_Logger.DEBUG("onServiceFail",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 45, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "onServiceFail"});
 	}
 	,onServiceCancel: function(service) {
-		hex_log_Logger.DEBUG("onServiceCancel",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 52, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "onServiceCancel"});
+		hex_log_Logger.DEBUG("onServiceCancel",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 49, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "onServiceCancel"});
 	}
 	,onServiceTimeout: function(service) {
-		hex_log_Logger.DEBUG("onServiceTimeout",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 56, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "onServiceTimeout"});
+		hex_log_Logger.DEBUG("onServiceTimeout",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 53, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "onServiceTimeout"});
 	}
 	,__class__: example_module_gallery_controller_LoadPhotosCommand
 });
-var hex_event_MessageType = function(messageName) {
-	if(messageName == null) messageName = "handleMessage";
-	this.name = messageName;
-};
-$hxClasses["hex.event.MessageType"] = hex_event_MessageType;
-hex_event_MessageType.__name__ = ["hex","event","MessageType"];
-hex_event_MessageType.prototype = {
-	name: null
-	,__class__: hex_event_MessageType
-};
-var example_module_gallery_message_GalleryModuleMessage = function() { };
-$hxClasses["example.module.gallery.message.GalleryModuleMessage"] = example_module_gallery_message_GalleryModuleMessage;
-example_module_gallery_message_GalleryModuleMessage.__name__ = ["example","module","gallery","message","GalleryModuleMessage"];
 var hex_model_IModelRO = function() { };
 $hxClasses["hex.model.IModelRO"] = hex_model_IModelRO;
 hex_model_IModelRO.__name__ = ["hex","model","IModelRO"];
@@ -1464,11 +1466,13 @@ example_module_gallery_view_GalleryViewHelper.__super__ = hex_view_viewhelper_Vi
 example_module_gallery_view_GalleryViewHelper.prototype = $extend(hex_view_viewhelper_ViewHelper.prototype,{
 	_layoutView: null
 	,_model: null
+	,_controller: null
 	,_initialize: function() {
 		hex_view_viewhelper_ViewHelper.prototype._initialize.call(this);
 		this._layoutView = this._view;
-		hex_log_Logger.DEBUG(this._layoutView,null,{ fileName : "GalleryViewHelper.hx", lineNumber : 31, className : "example.module.gallery.view.GalleryViewHelper", methodName : "_initialize"});
 		this._model.addListener(this);
+		console.log(this._controller);
+		this._controller.loadPhotos();
 	}
 	,onPhotosLoaded: function(photos) {
 		this._layoutView.setPhotos(photos);
@@ -2951,6 +2955,16 @@ hex_collection_Locator.prototype = {
 	}
 	,__class__: hex_collection_Locator
 };
+var hex_event_MessageType = function(messageName) {
+	if(messageName == null) messageName = "handleMessage";
+	this.name = messageName;
+};
+$hxClasses["hex.event.MessageType"] = hex_event_MessageType;
+hex_event_MessageType.__name__ = ["hex","event","MessageType"];
+hex_event_MessageType.prototype = {
+	name: null
+	,__class__: hex_event_MessageType
+};
 var hex_collection_LocatorMessage = function() {
 };
 $hxClasses["hex.collection.LocatorMessage"] = hex_collection_LocatorMessage;
@@ -3556,6 +3570,40 @@ hex_control_command_CommandMapping.prototype = {
 	}
 	,__class__: hex_control_command_CommandMapping
 	,__properties__: {get_hasMappingResult:"get_hasMappingResult",get_hasCancelHandler:"get_hasCancelHandler",get_hasFailHandler:"get_hasFailHandler",get_hasCompleteHandler:"get_hasCompleteHandler",get_hasPayload:"get_hasPayload",get_isFiredOnce:"get_isFiredOnce",get_hasGuard:"get_hasGuard"}
+};
+var hex_control_controller_IObservable = function() { };
+$hxClasses["hex.control.controller.IObservable"] = hex_control_controller_IObservable;
+hex_control_controller_IObservable.__name__ = ["hex","control","controller","IObservable"];
+var hex_control_controller_ControllerResponder = function(asyncCommand) {
+	this._asyncCommand = asyncCommand;
+};
+$hxClasses["hex.control.controller.ControllerResponder"] = hex_control_controller_ControllerResponder;
+hex_control_controller_ControllerResponder.__name__ = ["hex","control","controller","ControllerResponder"];
+hex_control_controller_ControllerResponder.__interfaces__ = [hex_control_controller_IObservable];
+hex_control_controller_ControllerResponder.prototype = {
+	_asyncCommand: null
+	,addCompleteHandler: function(scope,callback) {
+		if(this._asyncCommand.get_hasCompleted()) callback(this._asyncCommand); else this._asyncCommand.addCompleteHandler(scope,callback);
+	}
+	,removeCompleteHandler: function(scope,callback) {
+		this._asyncCommand.removeCompleteHandler(scope,callback);
+	}
+	,addFailHandler: function(scope,callback) {
+		if(this._asyncCommand.get_hasFailed()) callback(this._asyncCommand); else this._asyncCommand.addFailHandler(scope,callback);
+	}
+	,removeFailHandler: function(scope,callback) {
+		this._asyncCommand.removeFailHandler(scope,callback);
+	}
+	,addCancelHandler: function(scope,callback) {
+		if(this._asyncCommand.get_isCancelled()) callback(this._asyncCommand); else this._asyncCommand.addCancelHandler(scope,callback);
+	}
+	,removeCancelHandler: function(scope,callback) {
+		this._asyncCommand.removeCancelHandler(scope,callback);
+	}
+	,getResult: function() {
+		return null;
+	}
+	,__class__: hex_control_controller_ControllerResponder
 };
 var hex_control_guard_GuardUtil = function() {
 	throw new js__$Boot_HaxeError(new hex_error_PrivateConstructorException("'GuardUtil' class can't be instantiated.",{ fileName : "GuardUtil.hx", lineNumber : 14, className : "hex.control.guard.GuardUtil", methodName : "new"}));
@@ -5059,14 +5107,17 @@ hex_event_ClassAdapter.prototype = {
 	,_callbackMethod: null
 	,_adapterClass: null
 	,_adapterInstance: null
+	,_adapterMethodName: null
 	,_factoryTarget: null
 	,_factoryMethod: null
 	,setCallBackMethod: function(callbackTarget,callbackMethod) {
 		this._callbackTarget = callbackTarget;
 		this._callbackMethod = callbackMethod;
 	}
-	,setAdapterClass: function(adapterClass) {
+	,setAdapterClass: function(adapterClass,adapterMethodName) {
+		if(adapterMethodName == null) adapterMethodName = "adapt";
 		this._adapterClass = adapterClass;
+		this._adapterMethodName = adapterMethodName;
 	}
 	,setFactoryMethod: function(factoryTarget,factoryMethod) {
 		this._factoryTarget = factoryTarget;
@@ -5081,6 +5132,7 @@ hex_event_ClassAdapter.prototype = {
 		var callbackMethod = this._callbackMethod;
 		var adapterInstance = null;
 		var adapterClass = null;
+		var adapterMethodName = this._adapterMethodName;
 		var factoryTarget = null;
 		var factoryMethod = null;
 		var isEventAdapterStrategyMacro = false;
@@ -5096,7 +5148,7 @@ hex_event_ClassAdapter.prototype = {
 			if(isEventAdapterStrategyMacro) {
 				var aSyncCommand;
 				if(factoryTarget != null && factoryMethod != null) aSyncCommand = factoryMethod(adapterClass); else aSyncCommand = Type.createInstance(adapterClass,[]);
-				if(js_Boot.__instanceof(aSyncCommand,hex_event_IAdapterStrategy) == false) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("adapterInstance class should extend AdapterStrategy. Check if you passed the correct class",{ fileName : "ClassAdapter.hx", lineNumber : 105, className : "hex.event.ClassAdapter", methodName : "getCallbackAdapter"}));
+				if(!js_Boot.__instanceof(aSyncCommand,hex_event_IAdapterStrategy)) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("adapterInstance class should extend AdapterStrategy. Check if you passed the correct class",{ fileName : "ClassAdapter.hx", lineNumber : 108, className : "hex.event.ClassAdapter", methodName : "getCallbackAdapter"}));
 				if(js_Boot.__instanceof(aSyncCommand,hex_core_IAnnotationParsable)) annotationProvider.parse(aSyncCommand);
 				adapterInstance = aSyncCommand;
 				$bind(aSyncCommand,aSyncCommand.adapt).apply(aSyncCommand,rest);
@@ -5107,8 +5159,7 @@ hex_event_ClassAdapter.prototype = {
 				return;
 			} else if(adapterInstance != null) {
 				if(js_Boot.__instanceof(adapterInstance,hex_core_IAnnotationParsable)) annotationProvider.parse(adapterInstance);
-				if(js_Boot.__instanceof(adapterInstance,hex_event_IAdapterStrategy) == false) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("adapterInstance class should extend AdapterStrategy. Check if you passed the correct class",{ fileName : "ClassAdapter.hx", lineNumber : 133, className : "hex.event.ClassAdapter", methodName : "getCallbackAdapter"}));
-				result = $bind(adapterInstance,adapterInstance.adapt).apply(adapterInstance,[rest]);
+				if(adapterMethodName == "adapt") result = $bind(adapterInstance,adapterInstance.adapt).apply(adapterInstance,rest); else result = Reflect.callMethod(adapterInstance,Reflect.field(adapterInstance,adapterMethodName),rest);
 			}
 			Reflect.callMethod(callbackTarget,callbackMethod,(result instanceof Array) && result.__enum__ == null?result:[result]);
 		};
@@ -5489,6 +5540,23 @@ var hex_ioc_assembler_ApplicationAssembler = function() {
 $hxClasses["hex.ioc.assembler.ApplicationAssembler"] = hex_ioc_assembler_ApplicationAssembler;
 hex_ioc_assembler_ApplicationAssembler.__name__ = ["hex","ioc","assembler","ApplicationAssembler"];
 hex_ioc_assembler_ApplicationAssembler.__interfaces__ = [hex_ioc_assembler_IApplicationAssembler];
+hex_ioc_assembler_ApplicationAssembler._deserializeArguments = function(ownerID,args) {
+	var length = args.length;
+	var index;
+	var obj;
+	var _g = 0;
+	while(_g < length) {
+		var index1 = _g++;
+		args[index1] = hex_ioc_assembler_ApplicationAssembler._getConstructorVO(ownerID,args[index1]);
+	}
+};
+hex_ioc_assembler_ApplicationAssembler._getConstructorVO = function(ownerID,obj) {
+	if(obj.method != null) return new hex_ioc_vo_ConstructorVO(null,"Function",[obj.method]); else if(obj.ref != null) return new hex_ioc_vo_ConstructorVO(null,"Instance",null,null,null,false,obj.ref); else if(obj.staticRef != null) return new hex_ioc_vo_ConstructorVO(null,"Instance",null,null,null,false,null,null,obj.staticRef); else {
+		var type;
+		if(obj.type != null) type = obj.type; else type = "String";
+		return new hex_ioc_vo_ConstructorVO(ownerID,type,[obj.value]);
+	}
+};
 hex_ioc_assembler_ApplicationAssembler.prototype = {
 	_mApplicationContext: null
 	,_mContextFactories: null
@@ -5554,60 +5622,12 @@ hex_ioc_assembler_ApplicationAssembler.prototype = {
 		if(injectInto == null) injectInto = false;
 		if(this.allowsIfList(ifList) && this.allowsIfNotList(ifNotList)) {
 			this._registerID(applicationContext,ownerID);
-			if(args != null) {
-				var length = args.length;
-				var index;
-				var obj;
-				if(type == "hex.collection.HashMap") {
-					var _g = 0;
-					while(_g < length) {
-						var index1 = _g++;
-						obj = args[index1];
-						var keyDic = obj.key;
-						var valueDic = obj.value;
-						var pKeyDic = new hex_ioc_vo_PropertyVO(ownerID,keyDic.name,keyDic.value,keyDic.type,keyDic.ref,keyDic.method,keyDic.staticRef);
-						var pValueDic = new hex_ioc_vo_PropertyVO(ownerID,valueDic.name,valueDic.value,valueDic.type,valueDic.ref,valueDic.method,valueDic.staticRef);
-						args[index1] = new hex_ioc_vo_MapVO(pKeyDic,pValueDic);
-					}
-				} else if(type == "hex.config.stateful.ServiceLocator") {
-					var _g1 = 0;
-					while(_g1 < length) {
-						var index2 = _g1++;
-						obj = args[index2];
-						var keySC = obj.key;
-						var valueSC = obj.value;
-						var pKeySC = new hex_ioc_vo_PropertyVO(ownerID,keySC.name,keySC.value,keySC.type,keySC.ref,keySC.method,keySC.staticRef);
-						var pValueSC = new hex_ioc_vo_PropertyVO(ownerID,valueSC.name,valueSC.value,valueSC.type,valueSC.ref,valueSC.method,valueSC.staticRef);
-						args[index2] = new hex_ioc_vo_ServiceLocatorVO(pKeySC,pValueSC,obj.mapName);
-					}
-				} else {
-					var _g2 = 0;
-					while(_g2 < length) {
-						var index3 = _g2++;
-						obj = args[index3];
-						var propertyVO = new hex_ioc_vo_PropertyVO(ownerID,obj.name,obj.value,obj.type,obj.ref,obj.method,obj.staticRef);
-						args[index3] = propertyVO;
-					}
-				}
-			}
 			var constructorVO = new hex_ioc_vo_ConstructorVO(ownerID,type,args,factory,singleton,injectInto,null,mapType,staticRef);
 			this.getContextFactory(applicationContext).registerConstructorVO(ownerID,constructorVO);
 		}
 	}
 	,buildMethodCall: function(applicationContext,ownerID,methodCallName,args,ifList,ifNotList) {
-		if(this.allowsIfList(ifList) && this.allowsIfNotList(ifNotList)) {
-			if(args != null) {
-				var length = args.length;
-				var _g = 0;
-				while(_g < length) {
-					var i = _g++;
-					var obj = args[i];
-					var prop = new hex_ioc_vo_PropertyVO(obj.id,obj.name,obj.value,obj.type,obj.ref,obj.method,obj.staticRef);
-					args[i] = prop;
-				}
-			}
-			this.getContextFactory(applicationContext).registerMethodCallVO(new hex_ioc_vo_MethodCallVO(ownerID,methodCallName,args));
-		}
+		if(this.allowsIfList(ifList) && this.allowsIfNotList(ifNotList)) this.getContextFactory(applicationContext).registerMethodCallVO(new hex_ioc_vo_MethodCallVO(ownerID,methodCallName,args));
 	}
 	,buildDomainListener: function(applicationContext,ownerID,listenedDomainName,args,ifList,ifNotList) {
 		if(this.allowsIfList(ifList) && this.allowsIfNotList(ifNotList)) this.getContextFactory(applicationContext).registerDomainListenerVO(new hex_ioc_vo_DomainListenerVO(ownerID,listenedDomainName,args));
@@ -5749,292 +5769,348 @@ hex_ioc_assembler_ApplicationContextStateList.prototype = {
 	,ASSEMBLING_END: null
 	,__class__: hex_ioc_assembler_ApplicationContextStateList
 };
-var hex_ioc_control_IBuildCommand = function() { };
-$hxClasses["hex.ioc.control.IBuildCommand"] = hex_ioc_control_IBuildCommand;
-hex_ioc_control_IBuildCommand.__name__ = ["hex","ioc","control","IBuildCommand"];
-hex_ioc_control_IBuildCommand.prototype = {
-	execute: null
-	,__class__: hex_ioc_control_IBuildCommand
+var hex_ioc_control_ArrayFactory = function() {
 };
-var hex_ioc_control_BuildArrayCommand = function() {
+$hxClasses["hex.ioc.control.ArrayFactory"] = hex_ioc_control_ArrayFactory;
+hex_ioc_control_ArrayFactory.__name__ = ["hex","ioc","control","ArrayFactory"];
+hex_ioc_control_ArrayFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var array = [];
+	var args = constructorVO["arguments"];
+	if(args != null) array = args.slice();
+	constructorVO.result = array;
 };
-$hxClasses["hex.ioc.control.BuildArrayCommand"] = hex_ioc_control_BuildArrayCommand;
-hex_ioc_control_BuildArrayCommand.__name__ = ["hex","ioc","control","BuildArrayCommand"];
-hex_ioc_control_BuildArrayCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildArrayCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		var array = [];
-		var args = constructorVO["arguments"];
-		if(args != null) array = args.slice();
-		constructorVO.result = array;
+hex_ioc_control_ArrayFactory.prototype = {
+	__class__: hex_ioc_control_ArrayFactory
+};
+var hex_ioc_control_BoolFactory = function() {
+};
+$hxClasses["hex.ioc.control.BoolFactory"] = hex_ioc_control_BoolFactory;
+hex_ioc_control_BoolFactory.__name__ = ["hex","ioc","control","BoolFactory"];
+hex_ioc_control_BoolFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var value = "";
+	var args = constructorVO["arguments"];
+	if(args != null && args.length > 0) value = args[0];
+	if(value == "true") constructorVO.result = true; else if(value == "false") constructorVO.result = false; else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("BoolFactory.build(" + value + ") failed.",{ fileName : "BoolFactory.hx", lineNumber : 40, className : "hex.ioc.control.BoolFactory", methodName : "build"}));
+};
+hex_ioc_control_BoolFactory.prototype = {
+	__class__: hex_ioc_control_BoolFactory
+};
+var hex_ioc_control_ClassFactory = function() {
+};
+$hxClasses["hex.ioc.control.ClassFactory"] = hex_ioc_control_ClassFactory;
+hex_ioc_control_ClassFactory.__name__ = ["hex","ioc","control","ClassFactory"];
+hex_ioc_control_ClassFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var clazz;
+	var qualifiedClassName = "";
+	var args = constructorVO["arguments"];
+	if(args != null && args.length > 0) qualifiedClassName = "" + Std.string(args[0]);
+	try {
+		clazz = Type.resolveClass(qualifiedClassName);
+	} catch( e ) {
+		if (e instanceof js__$Boot_HaxeError) e = e.val;
+		clazz = null;
 	}
-	,__class__: hex_ioc_control_BuildArrayCommand
+	if(clazz == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("'" + qualifiedClassName + "' is not available",{ fileName : "ClassFactory.hx", lineNumber : 42, className : "hex.ioc.control.ClassFactory", methodName : "build"}));
+	constructorVO.result = clazz;
 };
-var hex_ioc_control_BuildBooleanCommand = function() {
+hex_ioc_control_ClassFactory.prototype = {
+	__class__: hex_ioc_control_ClassFactory
 };
-$hxClasses["hex.ioc.control.BuildBooleanCommand"] = hex_ioc_control_BuildBooleanCommand;
-hex_ioc_control_BuildBooleanCommand.__name__ = ["hex","ioc","control","BuildBooleanCommand"];
-hex_ioc_control_BuildBooleanCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildBooleanCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		var value = "";
-		var args = constructorVO["arguments"];
-		if(args != null && args.length > 0) value = args[0];
-		if(value == "true") constructorVO.result = true; else if(value == "false") constructorVO.result = false; else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(Std.string(this) + ".build(" + value + ") failed.",{ fileName : "BuildBooleanCommand.hx", lineNumber : 40, className : "hex.ioc.control.BuildBooleanCommand", methodName : "execute"}));
-	}
-	,__class__: hex_ioc_control_BuildBooleanCommand
+var hex_ioc_control_ClassInstanceFactory = function() {
 };
-var hex_ioc_control_BuildClassCommand = function() {
-};
-$hxClasses["hex.ioc.control.BuildClassCommand"] = hex_ioc_control_BuildClassCommand;
-hex_ioc_control_BuildClassCommand.__name__ = ["hex","ioc","control","BuildClassCommand"];
-hex_ioc_control_BuildClassCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildClassCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		var clazz;
-		var qualifiedClassName = "";
-		var args = constructorVO["arguments"];
-		if(args != null && args.length > 0) qualifiedClassName = "" + Std.string(args[0]);
-		try {
-			clazz = Type.resolveClass(qualifiedClassName);
-		} catch( e ) {
-			if (e instanceof js__$Boot_HaxeError) e = e.val;
-			clazz = null;
+$hxClasses["hex.ioc.control.ClassInstanceFactory"] = hex_ioc_control_ClassInstanceFactory;
+hex_ioc_control_ClassInstanceFactory.__name__ = ["hex","ioc","control","ClassInstanceFactory"];
+hex_ioc_control_ClassInstanceFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	if(constructorVO.ref != null) hex_ioc_control_ReferenceFactory.build(factoryVO); else {
+		var classReference = hex_util_ClassUtil.getClassReference(constructorVO.type);
+		var isModule = hex_util_ClassUtil.classExtendsOrImplements(classReference,hex_module_IModule);
+		if(isModule && constructorVO.ID != null && constructorVO.ID.length > 0) {
+			hex_domain_DomainExpert.getInstance().registerDomain(hex_domain_DomainUtil.getDomain(constructorVO.ID,hex_domain_Domain));
+			hex_metadata_AnnotationProvider.registerToDomain(factoryVO.contextFactory.getAnnotationProvider(),hex_domain_DomainUtil.getDomain(constructorVO.ID,hex_domain_Domain));
 		}
-		if(clazz == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("'" + qualifiedClassName + "' is not available",{ fileName : "BuildClassCommand.hx", lineNumber : 42, className : "hex.ioc.control.BuildClassCommand", methodName : "execute"}));
-		constructorVO.result = clazz;
-	}
-	,__class__: hex_ioc_control_BuildClassCommand
-};
-var hex_ioc_control_BuildFloatCommand = function() {
-};
-$hxClasses["hex.ioc.control.BuildFloatCommand"] = hex_ioc_control_BuildFloatCommand;
-hex_ioc_control_BuildFloatCommand.__name__ = ["hex","ioc","control","BuildFloatCommand"];
-hex_ioc_control_BuildFloatCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildFloatCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		var args = constructorVO["arguments"];
-		var number = NaN;
-		if(args != null && args.length > 0) number = Std.parseFloat(args[0]);
-		if(!isNaN(number)) constructorVO.result = number; else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(Std.string(this) + ".execute(" + number + ") failed.",{ fileName : "BuildFloatCommand.hx", lineNumber : 36, className : "hex.ioc.control.BuildFloatCommand", methodName : "execute"}));
-	}
-	,__class__: hex_ioc_control_BuildFloatCommand
-};
-var hex_ioc_control_BuildFunctionCommand = function() {
-};
-$hxClasses["hex.ioc.control.BuildFunctionCommand"] = hex_ioc_control_BuildFunctionCommand;
-hex_ioc_control_BuildFunctionCommand.__name__ = ["hex","ioc","control","BuildFunctionCommand"];
-hex_ioc_control_BuildFunctionCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildFunctionCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		var method;
-		var msg;
-		var args = constructorVO["arguments"][0].split(".");
-		var targetID = args[0];
-		var path = args.slice(1).join(".");
-		if(!buildHelperVO.coreFactory.isRegisteredWithKey(targetID)) buildHelperVO.contextFactory.buildObject(targetID);
-		var target = buildHelperVO.coreFactory.locate(targetID);
-		try {
-			method = buildHelperVO.coreFactory.fastEvalFromTarget(target,path);
-		} catch( error ) {
-			if (error instanceof js__$Boot_HaxeError) error = error.val;
-			msg = " " + Std.string(this) + ".execute() failed on " + Std.string(target) + " with id '" + targetID + "'. ";
-			msg += path + " method can't be found.";
-			throw new js__$Boot_HaxeError(new hex_error_Exception(msg,{ fileName : "BuildFunctionCommand.hx", lineNumber : 44, className : "hex.ioc.control.BuildFunctionCommand", methodName : "execute"}));
+		constructorVO.result = factoryVO.coreFactory.buildInstance(constructorVO.type,constructorVO["arguments"],constructorVO.factory,constructorVO.singleton,constructorVO.injectInto);
+		if(js_Boot.__instanceof(constructorVO.result,hex_module_IModule)) factoryVO.moduleLocator.register(constructorVO.ID,constructorVO.result);
+		if(constructorVO.mapType != null) {
+			var classToMap = Type.resolveClass(constructorVO.mapType);
+			factoryVO.contextFactory.getApplicationContext().getBasicInjector().mapToValue(classToMap,constructorVO.result,constructorVO.ID);
 		}
-		constructorVO.result = method;
 	}
-	,__class__: hex_ioc_control_BuildFunctionCommand
 };
-var hex_ioc_control_BuildInstanceCommand = function() {
+hex_ioc_control_ClassInstanceFactory.prototype = {
+	__class__: hex_ioc_control_ClassInstanceFactory
 };
-$hxClasses["hex.ioc.control.BuildInstanceCommand"] = hex_ioc_control_BuildInstanceCommand;
-hex_ioc_control_BuildInstanceCommand.__name__ = ["hex","ioc","control","BuildInstanceCommand"];
-hex_ioc_control_BuildInstanceCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildInstanceCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		if(constructorVO.ref != null) {
-			var key = constructorVO.ref;
-			if(key.indexOf(".") != -1) key = Std.string(key.split(".").shift());
-			if(!buildHelperVO.coreFactory.isRegisteredWithKey(key)) buildHelperVO.contextFactory.buildObject(key);
-			constructorVO.result = buildHelperVO.coreFactory.locate(key);
-			if(constructorVO.ref.indexOf(".") != -1) {
-				var args = constructorVO.ref.split(".");
-				args.shift();
-				constructorVO.result = buildHelperVO.coreFactory.fastEvalFromTarget(constructorVO.result,args.join("."));
+var hex_ioc_control_DomainListenerFactory = function() {
+};
+$hxClasses["hex.ioc.control.DomainListenerFactory"] = hex_ioc_control_DomainListenerFactory;
+hex_ioc_control_DomainListenerFactory.__name__ = ["hex","ioc","control","DomainListenerFactory"];
+hex_ioc_control_DomainListenerFactory.build = function(id,domainListenerVOLocator,applicationContext,annotationProvider) {
+	var coreFactory = applicationContext.getCoreFactory();
+	var domainListener = domainListenerVOLocator.locate(id);
+	var listener = coreFactory.locate(domainListener.ownerID);
+	var args = domainListener["arguments"];
+	var service = null;
+	if(coreFactory.isRegisteredWithKey(domainListener.listenedDomainName)) {
+		var located = coreFactory.locate(domainListener.listenedDomainName);
+		if(js_Boot.__instanceof(located,hex_service_IService)) service = located;
+	}
+	if(args != null && args.length > 0) {
+		var _g = 0;
+		while(_g < args.length) {
+			var domainListenerArgument = args[_g];
+			++_g;
+			var method;
+			if(js_Boot.__instanceof(listener,hex_event_EventProxy)) method = "handleCallback"; else method = domainListenerArgument.method;
+			var messageType;
+			if(domainListenerArgument.name != null) messageType = new hex_event_MessageType(domainListenerArgument.name); else messageType = hex_util_ClassUtil.getStaticVariableReference(domainListenerArgument.staticRef);
+			if(method != null && Reflect.isFunction(Reflect.field(listener,method)) || domainListenerArgument.strategy != null) {
+				var callback;
+				if(domainListenerArgument.strategy != null) callback = hex_ioc_control_DomainListenerFactory._getStrategyCallback(annotationProvider,applicationContext,listener,method,domainListenerArgument.strategy,domainListenerArgument.injectedInModule); else callback = Reflect.field(listener,method);
+				if(service == null) {
+					var domain = hex_domain_DomainUtil.getDomain(domainListener.listenedDomainName,hex_domain_Domain);
+					hex_domain_ApplicationDomainDispatcher.getInstance().addHandler(messageType,listener,callback,domain);
+				} else service.addHandler(messageType,listener,callback);
+			} else if(method == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("DomainListenerFactory.build failed. Callback should be defined (use 'method' attribute) in instance of '" + hex_log_Stringifier.stringify(listener) + "' class with '" + domainListener.ownerID + "' id",{ fileName : "DomainListenerFactory.hx", lineNumber : 81, className : "hex.ioc.control.DomainListenerFactory", methodName : "build"})); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("DomainListenerFactory.build failed. Method named '" + method + "' can't be found in instance of '" + hex_log_Stringifier.stringify(listener) + "' class with '" + domainListener.ownerID + "' id",{ fileName : "DomainListenerFactory.hx", lineNumber : 86, className : "hex.ioc.control.DomainListenerFactory", methodName : "build"}));
+		}
+		return true;
+	} else {
+		var domain1 = hex_domain_DomainUtil.getDomain(domainListener.listenedDomainName,hex_domain_Domain);
+		return hex_domain_ApplicationDomainDispatcher.getInstance().addListener(listener,domain1);
+	}
+};
+hex_ioc_control_DomainListenerFactory._getStrategyCallback = function(annotationProvider,applicationContext,listener,method,strategyClassName,injectedInModule) {
+	if(injectedInModule == null) injectedInModule = false;
+	var callback = Reflect.field(listener,method);
+	var strategyClass = hex_util_ClassUtil.getClassReference(strategyClassName);
+	var adapter = new hex_event_ClassAdapter();
+	adapter.setCallBackMethod(listener,callback);
+	adapter.setAdapterClass(strategyClass);
+	adapter.setAnnotationProvider(annotationProvider);
+	if(injectedInModule && js_Boot.__instanceof(listener,hex_module_IModule)) {
+		var basicInjector = listener.getBasicInjector();
+		adapter.setFactoryMethod(basicInjector,$bind(basicInjector,basicInjector.instantiateUnmapped));
+	} else adapter.setFactoryMethod(applicationContext.getBasicInjector(),($_=applicationContext.getBasicInjector(),$bind($_,$_.instantiateUnmapped)));
+	var f = function(rest) {
+		(adapter.getCallbackAdapter())(rest);
+	};
+	return Reflect.makeVarArgs(f);
+};
+hex_ioc_control_DomainListenerFactory.prototype = {
+	__class__: hex_ioc_control_DomainListenerFactory
+};
+var hex_ioc_control_DynamicObjectFactory = function() {
+};
+$hxClasses["hex.ioc.control.DynamicObjectFactory"] = hex_ioc_control_DynamicObjectFactory;
+hex_ioc_control_DynamicObjectFactory.__name__ = ["hex","ioc","control","DynamicObjectFactory"];
+hex_ioc_control_DynamicObjectFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	factoryVO.constructorVO.result = { };
+};
+hex_ioc_control_DynamicObjectFactory.prototype = {
+	__class__: hex_ioc_control_DynamicObjectFactory
+};
+var hex_ioc_control_FloatFactory = function() {
+};
+$hxClasses["hex.ioc.control.FloatFactory"] = hex_ioc_control_FloatFactory;
+hex_ioc_control_FloatFactory.__name__ = ["hex","ioc","control","FloatFactory"];
+hex_ioc_control_FloatFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var args = constructorVO["arguments"];
+	var number = NaN;
+	if(args != null && args.length > 0) number = Std.parseFloat(args[0]);
+	if(!isNaN(number)) constructorVO.result = number; else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("FloatFactory.build(" + number + ") failed.",{ fileName : "FloatFactory.hx", lineNumber : 36, className : "hex.ioc.control.FloatFactory", methodName : "build"}));
+};
+hex_ioc_control_FloatFactory.prototype = {
+	__class__: hex_ioc_control_FloatFactory
+};
+var hex_ioc_control_FunctionFactory = function() {
+};
+$hxClasses["hex.ioc.control.FunctionFactory"] = hex_ioc_control_FunctionFactory;
+hex_ioc_control_FunctionFactory.__name__ = ["hex","ioc","control","FunctionFactory"];
+hex_ioc_control_FunctionFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var method;
+	var msg;
+	var args = constructorVO["arguments"][0].split(".");
+	var targetID = args[0];
+	var path = args.slice(1).join(".");
+	if(!factoryVO.coreFactory.isRegisteredWithKey(targetID)) factoryVO.contextFactory.buildObject(targetID);
+	var target = factoryVO.coreFactory.locate(targetID);
+	try {
+		method = factoryVO.coreFactory.fastEvalFromTarget(target,path);
+	} catch( error ) {
+		if (error instanceof js__$Boot_HaxeError) error = error.val;
+		msg = "FunctionFactory.build() failed on " + Std.string(target) + " with id '" + targetID + "'. ";
+		msg += path + " method can't be found.";
+		throw new js__$Boot_HaxeError(new hex_error_Exception(msg,{ fileName : "FunctionFactory.hx", lineNumber : 44, className : "hex.ioc.control.FunctionFactory", methodName : "build"}));
+	}
+	constructorVO.result = method;
+};
+hex_ioc_control_FunctionFactory.prototype = {
+	__class__: hex_ioc_control_FunctionFactory
+};
+var hex_ioc_control_HashMapFactory = function() {
+};
+$hxClasses["hex.ioc.control.HashMapFactory"] = hex_ioc_control_HashMapFactory;
+hex_ioc_control_HashMapFactory.__name__ = ["hex","ioc","control","HashMapFactory"];
+hex_ioc_control_HashMapFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var map = new hex_collection_HashMap();
+	var args = constructorVO["arguments"];
+	if(args.length == 0) hex_log_Logger.WARN("HashMapFactory.build(" + Std.string(args) + ") returns an empty HashMap.",null,{ fileName : "HashMapFactory.hx", lineNumber : 30, className : "hex.ioc.control.HashMapFactory", methodName : "build"}); else {
+		var _g = 0;
+		while(_g < args.length) {
+			var item = args[_g];
+			++_g;
+			if(item.key != null) map.put(item.key,item.value); else console.log("HashMapFactory.build() adds item with a 'null' key for '" + Std.string(item.value) + "' value.");
+		}
+	}
+	constructorVO.result = map;
+	if(constructorVO.mapType != null) factoryVO.contextFactory.getApplicationContext().getBasicInjector().mapToValue(hex_collection_HashMap,constructorVO.result,constructorVO.ID);
+};
+hex_ioc_control_HashMapFactory.prototype = {
+	__class__: hex_ioc_control_HashMapFactory
+};
+var hex_ioc_control_IntFactory = function() {
+};
+$hxClasses["hex.ioc.control.IntFactory"] = hex_ioc_control_IntFactory;
+hex_ioc_control_IntFactory.__name__ = ["hex","ioc","control","IntFactory"];
+hex_ioc_control_IntFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var args = constructorVO["arguments"];
+	var number = 0;
+	if(args != null && args.length > 0) number = Std.parseInt(Std.string(args[0])); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("IntFactory.build(" + (args != null && args.length > 0?args[0]:"") + ") failed.",{ fileName : "IntFactory.hx", lineNumber : 30, className : "hex.ioc.control.IntFactory", methodName : "build"}));
+	if(number == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("IntFactory.build(" + number + ") failed.",{ fileName : "IntFactory.hx", lineNumber : 39, className : "hex.ioc.control.IntFactory", methodName : "build"})); else constructorVO.result = number;
+};
+hex_ioc_control_IntFactory.prototype = {
+	__class__: hex_ioc_control_IntFactory
+};
+var hex_ioc_control_NullFactory = function() {
+};
+$hxClasses["hex.ioc.control.NullFactory"] = hex_ioc_control_NullFactory;
+hex_ioc_control_NullFactory.__name__ = ["hex","ioc","control","NullFactory"];
+hex_ioc_control_NullFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	constructorVO.result = null;
+};
+hex_ioc_control_NullFactory.prototype = {
+	__class__: hex_ioc_control_NullFactory
+};
+var hex_ioc_control_ReferenceFactory = function() {
+};
+$hxClasses["hex.ioc.control.ReferenceFactory"] = hex_ioc_control_ReferenceFactory;
+hex_ioc_control_ReferenceFactory.__name__ = ["hex","ioc","control","ReferenceFactory"];
+hex_ioc_control_ReferenceFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var key = constructorVO.ref;
+	if(key.indexOf(".") != -1) key = Std.string(key.split(".").shift());
+	if(!factoryVO.coreFactory.isRegisteredWithKey(key)) factoryVO.contextFactory.buildObject(key);
+	var result = factoryVO.coreFactory.locate(key);
+	if(constructorVO.ref.indexOf(".") != -1) {
+		var args = constructorVO.ref.split(".");
+		args.shift();
+		constructorVO.result = factoryVO.coreFactory.fastEvalFromTarget(result,args.join("."));
+	} else constructorVO.result = result;
+};
+hex_ioc_control_ReferenceFactory.prototype = {
+	__class__: hex_ioc_control_ReferenceFactory
+};
+var hex_ioc_control_ServiceLocatorFactory = function() {
+};
+$hxClasses["hex.ioc.control.ServiceLocatorFactory"] = hex_ioc_control_ServiceLocatorFactory;
+hex_ioc_control_ServiceLocatorFactory.__name__ = ["hex","ioc","control","ServiceLocatorFactory"];
+hex_ioc_control_ServiceLocatorFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var serviceLocator = new hex_config_stateful_ServiceLocator();
+	var args = constructorVO["arguments"];
+	if(args.length <= 0) console.log("ServiceLocatorFactory.build(" + Std.string(args) + ") returns an empty ServiceConfig."); else {
+		var _g = 0;
+		while(_g < args.length) {
+			var item = args[_g];
+			++_g;
+			if(item.key != null) serviceLocator.addService(item.key,item.value,item.mapName); else console.log("ServiceLocatorFactory.build() adds item with a 'null' key for '" + Std.string(item.value) + "' value.");
+		}
+	}
+	constructorVO.result = serviceLocator;
+};
+hex_ioc_control_ServiceLocatorFactory.prototype = {
+	__class__: hex_ioc_control_ServiceLocatorFactory
+};
+var hex_ioc_control_StaticVariableFactory = function() {
+};
+$hxClasses["hex.ioc.control.StaticVariableFactory"] = hex_ioc_control_StaticVariableFactory;
+hex_ioc_control_StaticVariableFactory.__name__ = ["hex","ioc","control","StaticVariableFactory"];
+hex_ioc_control_StaticVariableFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	constructorVO.result = hex_util_ClassUtil.getStaticVariableReference(constructorVO.staticRef);
+};
+hex_ioc_control_StaticVariableFactory.prototype = {
+	__class__: hex_ioc_control_StaticVariableFactory
+};
+var hex_ioc_control_StringFactory = function() {
+};
+$hxClasses["hex.ioc.control.StringFactory"] = hex_ioc_control_StringFactory;
+hex_ioc_control_StringFactory.__name__ = ["hex","ioc","control","StringFactory"];
+hex_ioc_control_StringFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var value = null;
+	var args = constructorVO["arguments"];
+	if(args != null && args.length > 0 && args[0] != null) value = Std.string(args[0]); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("StringFactory.build(" + value + ") returns empty String.",{ fileName : "StringFactory.hx", lineNumber : 32, className : "hex.ioc.control.StringFactory", methodName : "build"}));
+	if(value == null) {
+		value = "";
+		hex_log_Logger.WARN("StringFactory.build(" + value + ") returns empty String.",null,{ fileName : "StringFactory.hx", lineNumber : 39, className : "hex.ioc.control.StringFactory", methodName : "build"});
+	}
+	constructorVO.result = value;
+};
+hex_ioc_control_StringFactory.prototype = {
+	__class__: hex_ioc_control_StringFactory
+};
+var hex_ioc_control_UIntFactory = function() {
+};
+$hxClasses["hex.ioc.control.UIntFactory"] = hex_ioc_control_UIntFactory;
+hex_ioc_control_UIntFactory.__name__ = ["hex","ioc","control","UIntFactory"];
+hex_ioc_control_UIntFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var args = constructorVO["arguments"];
+	var number = 0;
+	if(args != null && args.length > 0) number = Std.parseInt(Std.string(args[0])); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("UIntFactory.build(" + (args != null && args.length > 0?args[0]:"") + ") failed.",{ fileName : "UIntFactory.hx", lineNumber : 31, className : "hex.ioc.control.UIntFactory", methodName : "build"}));
+	if(number == null || _$UInt_UInt_$Impl_$.gt(0,number)) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("UIntFactory.build(" + Std.string(_$UInt_UInt_$Impl_$.toFloat(number)) + ") failed.",{ fileName : "UIntFactory.hx", lineNumber : 40, className : "hex.ioc.control.UIntFactory", methodName : "build"})); else constructorVO.result = number;
+};
+hex_ioc_control_UIntFactory.prototype = {
+	__class__: hex_ioc_control_UIntFactory
+};
+var hex_ioc_control_XmlFactory = function() {
+};
+$hxClasses["hex.ioc.control.XmlFactory"] = hex_ioc_control_XmlFactory;
+hex_ioc_control_XmlFactory.__name__ = ["hex","ioc","control","XmlFactory"];
+hex_ioc_control_XmlFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var args = constructorVO["arguments"];
+	var factory = constructorVO.factory;
+	if(args != null || args.length > 0) {
+		var source = args[0];
+		if(source.length > 0) {
+			if(factory == null) constructorVO.result = Xml.parse(source); else try {
+				var parser = factoryVO.coreFactory.buildInstance(factory);
+				constructorVO.result = parser.parse(Xml.parse(source));
+			} catch( error ) {
+				if (error instanceof js__$Boot_HaxeError) error = error.val;
+				throw new js__$Boot_HaxeError(new hex_ioc_error_ParsingException("XmlFactory.build() failed to deserialize XML with '" + factory + "' deserializer class.",{ fileName : "XmlFactory.hx", lineNumber : 49, className : "hex.ioc.control.XmlFactory", methodName : "build"}));
 			}
 		} else {
-			if(constructorVO.staticRef != null) constructorVO.result = buildHelperVO.coreFactory.getStaticReference(constructorVO.staticRef); else {
-				var classReference = buildHelperVO.coreFactory.getClassReference(constructorVO.type);
-				var isModule = hex_util_ClassUtil.classExtendsOrImplements(classReference,hex_module_IModule);
-				if(isModule && constructorVO.ID != null && constructorVO.ID.length > 0) {
-					hex_domain_DomainExpert.getInstance().registerDomain(hex_domain_DomainUtil.getDomain(constructorVO.ID,hex_domain_Domain));
-					hex_metadata_AnnotationProvider.registerToDomain(buildHelperVO.contextFactory.getAnnotationProvider(),hex_domain_DomainUtil.getDomain(constructorVO.ID,hex_domain_Domain));
-				}
-				constructorVO.result = buildHelperVO.coreFactory.buildInstance(constructorVO.type,constructorVO["arguments"],constructorVO.factory,constructorVO.singleton,constructorVO.injectInto);
-			}
-			if(js_Boot.__instanceof(constructorVO.result,hex_module_IModule)) buildHelperVO.moduleLocator.register(constructorVO.ID,constructorVO.result);
-			if(constructorVO.mapType != null) {
-				var classToMap = Type.resolveClass(constructorVO.mapType);
-				buildHelperVO.contextFactory.getApplicationContext().getBasicInjector().mapToValue(classToMap,constructorVO.result,constructorVO.ID);
-			}
-		}
-	}
-	,__class__: hex_ioc_control_BuildInstanceCommand
-};
-var hex_ioc_control_BuildIntCommand = function() {
-};
-$hxClasses["hex.ioc.control.BuildIntCommand"] = hex_ioc_control_BuildIntCommand;
-hex_ioc_control_BuildIntCommand.__name__ = ["hex","ioc","control","BuildIntCommand"];
-hex_ioc_control_BuildIntCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildIntCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		var args = constructorVO["arguments"];
-		var number = 0;
-		if(args != null && args.length > 0) number = Std.parseInt(Std.string(args[0])); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(Std.string(this) + ".execute(" + (args != null && args.length > 0?args[0]:"") + ") failed.",{ fileName : "BuildIntCommand.hx", lineNumber : 30, className : "hex.ioc.control.BuildIntCommand", methodName : "execute"}));
-		if(number == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(Std.string(this) + ".execute(" + number + ") failed.",{ fileName : "BuildIntCommand.hx", lineNumber : 39, className : "hex.ioc.control.BuildIntCommand", methodName : "execute"})); else constructorVO.result = number;
-	}
-	,__class__: hex_ioc_control_BuildIntCommand
-};
-var hex_ioc_control_BuildMapCommand = function() {
-};
-$hxClasses["hex.ioc.control.BuildMapCommand"] = hex_ioc_control_BuildMapCommand;
-hex_ioc_control_BuildMapCommand.__name__ = ["hex","ioc","control","BuildMapCommand"];
-hex_ioc_control_BuildMapCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildMapCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		var map = new hex_collection_HashMap();
-		var args = constructorVO["arguments"];
-		if(args.length == 0) hex_log_Logger.WARN(Std.string(this) + ".execute(" + Std.string(args) + ") returns an empty HashMap.",null,{ fileName : "BuildMapCommand.hx", lineNumber : 30, className : "hex.ioc.control.BuildMapCommand", methodName : "execute"}); else {
-			var _g = 0;
-			while(_g < args.length) {
-				var item = args[_g];
-				++_g;
-				if(item.key != null) map.put(item.key,item.value); else console.log(Std.string(this) + ".execute() adds item with a 'null' key for '" + Std.string(item.value) + "' value.");
-			}
-		}
-		constructorVO.result = map;
-		if(constructorVO.mapType != null) buildHelperVO.contextFactory.getApplicationContext().getBasicInjector().mapToValue(hex_collection_HashMap,constructorVO.result,constructorVO.ID);
-	}
-	,__class__: hex_ioc_control_BuildMapCommand
-};
-var hex_ioc_control_BuildNullCommand = function() {
-};
-$hxClasses["hex.ioc.control.BuildNullCommand"] = hex_ioc_control_BuildNullCommand;
-hex_ioc_control_BuildNullCommand.__name__ = ["hex","ioc","control","BuildNullCommand"];
-hex_ioc_control_BuildNullCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildNullCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		constructorVO.result = null;
-	}
-	,__class__: hex_ioc_control_BuildNullCommand
-};
-var hex_ioc_control_BuildObjectCommand = function() {
-};
-$hxClasses["hex.ioc.control.BuildObjectCommand"] = hex_ioc_control_BuildObjectCommand;
-hex_ioc_control_BuildObjectCommand.__name__ = ["hex","ioc","control","BuildObjectCommand"];
-hex_ioc_control_BuildObjectCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildObjectCommand.prototype = {
-	execute: function(buildHelperVO) {
-		buildHelperVO.constructorVO.result = { };
-	}
-	,__class__: hex_ioc_control_BuildObjectCommand
-};
-var hex_ioc_control_BuildServiceLocatorCommand = function() {
-};
-$hxClasses["hex.ioc.control.BuildServiceLocatorCommand"] = hex_ioc_control_BuildServiceLocatorCommand;
-hex_ioc_control_BuildServiceLocatorCommand.__name__ = ["hex","ioc","control","BuildServiceLocatorCommand"];
-hex_ioc_control_BuildServiceLocatorCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildServiceLocatorCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		var serviceLocator = new hex_config_stateful_ServiceLocator();
-		var args = constructorVO["arguments"];
-		if(args.length <= 0) console.log(Std.string(this) + ".execute(" + Std.string(args) + ") returns an empty ServiceConfig."); else {
-			var _g = 0;
-			while(_g < args.length) {
-				var item = args[_g];
-				++_g;
-				if(item.key != null) serviceLocator.addService(item.key,item.value,item.mapName); else console.log(Std.string(this) + ".execute() adds item with a 'null' key for '" + Std.string(item.value) + "' value.");
-			}
-		}
-		constructorVO.result = serviceLocator;
-	}
-	,__class__: hex_ioc_control_BuildServiceLocatorCommand
-};
-var hex_ioc_control_BuildStringCommand = function() {
-};
-$hxClasses["hex.ioc.control.BuildStringCommand"] = hex_ioc_control_BuildStringCommand;
-hex_ioc_control_BuildStringCommand.__name__ = ["hex","ioc","control","BuildStringCommand"];
-hex_ioc_control_BuildStringCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildStringCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		var value = null;
-		var args = constructorVO["arguments"];
-		if(args != null && args.length > 0 && args[0] != null) value = Std.string(args[0]); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(Std.string(this) + ".execute(" + value + ") returns empty String.",{ fileName : "BuildStringCommand.hx", lineNumber : 32, className : "hex.ioc.control.BuildStringCommand", methodName : "execute"}));
-		if(value == null) {
-			value = "";
-			hex_log_Logger.WARN(Std.string(this) + ".execute(" + value + ") returns empty String.",null,{ fileName : "BuildStringCommand.hx", lineNumber : 39, className : "hex.ioc.control.BuildStringCommand", methodName : "execute"});
-		}
-		constructorVO.result = value;
-	}
-	,__class__: hex_ioc_control_BuildStringCommand
-};
-var hex_ioc_control_BuildUIntCommand = function() {
-};
-$hxClasses["hex.ioc.control.BuildUIntCommand"] = hex_ioc_control_BuildUIntCommand;
-hex_ioc_control_BuildUIntCommand.__name__ = ["hex","ioc","control","BuildUIntCommand"];
-hex_ioc_control_BuildUIntCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildUIntCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		var args = constructorVO["arguments"];
-		var number = 0;
-		if(args != null && args.length > 0) number = Std.parseInt(Std.string(args[0])); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(Std.string(this) + ".execute(" + (args != null && args.length > 0?args[0]:"") + ") failed.",{ fileName : "BuildUIntCommand.hx", lineNumber : 31, className : "hex.ioc.control.BuildUIntCommand", methodName : "execute"}));
-		if(number == null || _$UInt_UInt_$Impl_$.gt(0,number)) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(Std.string(this) + ".execute(" + Std.string(_$UInt_UInt_$Impl_$.toFloat(number)) + ") failed.",{ fileName : "BuildUIntCommand.hx", lineNumber : 40, className : "hex.ioc.control.BuildUIntCommand", methodName : "execute"})); else constructorVO.result = number;
-	}
-	,__class__: hex_ioc_control_BuildUIntCommand
-};
-var hex_ioc_control_BuildXMLCommand = function() {
-};
-$hxClasses["hex.ioc.control.BuildXMLCommand"] = hex_ioc_control_BuildXMLCommand;
-hex_ioc_control_BuildXMLCommand.__name__ = ["hex","ioc","control","BuildXMLCommand"];
-hex_ioc_control_BuildXMLCommand.__interfaces__ = [hex_ioc_control_IBuildCommand];
-hex_ioc_control_BuildXMLCommand.prototype = {
-	execute: function(buildHelperVO) {
-		var constructorVO = buildHelperVO.constructorVO;
-		var args = constructorVO["arguments"];
-		var factory = constructorVO.factory;
-		if(args != null || args.length > 0) {
-			var source = args[0];
-			if(source.length > 0) {
-				if(factory == null) constructorVO.result = Xml.parse(source); else try {
-					var parser = buildHelperVO.coreFactory.buildInstance(factory);
-					constructorVO.result = parser.parse(Xml.parse(source));
-				} catch( error ) {
-					if (error instanceof js__$Boot_HaxeError) error = error.val;
-					throw new js__$Boot_HaxeError(new hex_ioc_error_ParsingException(Std.string(this) + ".execute() failed to deserialize XML with '" + factory + "' deserializer class.",{ fileName : "BuildXMLCommand.hx", lineNumber : 45, className : "hex.ioc.control.BuildXMLCommand", methodName : "execute"}));
-				}
-			} else {
-				console.log(Std.string(this) + ".execute() returns an empty XML.");
-				constructorVO.result = Xml.parse("");
-			}
-		} else {
-			console.log(Std.string(this) + ".execute() returns an empty XML.");
+			console.log("XmlFactory.build() returns an empty XML.");
 			constructorVO.result = Xml.parse("");
 		}
+	} else {
+		console.log("XmlFactory.build() returns an empty XML.");
+		constructorVO.result = Xml.parse("");
 	}
-	,__class__: hex_ioc_control_BuildXMLCommand
+};
+hex_ioc_control_XmlFactory.prototype = {
+	__class__: hex_ioc_control_XmlFactory
 };
 var hex_ioc_core_ContextAttributeList = function() {
 	throw new js__$Boot_HaxeError(new hex_error_PrivateConstructorException("'ContextAttributeList' class can't be instantiated.",{ fileName : "ContextAttributeList.hx", lineNumber : 35, className : "hex.ioc.core.ContextAttributeList", methodName : "new"}));
@@ -6053,7 +6129,6 @@ hex_ioc_core_IContextFactory.prototype = {
 	,buildStateTransition: null
 	,buildAllStateTransitions: null
 	,registerPropertyVO: null
-	,deserializeArguments: null
 	,registerConstructorVO: null
 	,buildObject: null
 	,buildAllObjects: null
@@ -6094,9 +6169,8 @@ hex_ioc_core_ContextFactory.prototype = {
 	,_contextDispatcher: null
 	,_moduleLocator: null
 	,_applicationContext: null
-	,_commandMap: null
+	,_factoryMap: null
 	,_coreFactory: null
-	,_applicationDomainHub: null
 	,_IDExpert: null
 	,_constructorVOLocator: null
 	,_propertyVOLocator: null
@@ -6126,13 +6200,13 @@ hex_ioc_core_ContextFactory.prototype = {
 		if(this._propertyVOLocator.isRegisteredWithKey(id)) this._propertyVOLocator.locate(id).push(propertyVO); else this._propertyVOLocator.register(id,[propertyVO]);
 	}
 	,_getPropertyValue: function(property) {
-		if(property.method != null) return this._build(new hex_ioc_vo_ConstructorVO(null,"Function",[property.method])); else if(property.ref != null) return this._build(new hex_ioc_vo_ConstructorVO(null,"Instance",null,null,null,false,property.ref)); else if(property.staticRef != null) return this._coreFactory.getStaticReference(property.staticRef); else {
+		if(property.method != null) return this._build(new hex_ioc_vo_ConstructorVO(null,"Function",[property.method])); else if(property.ref != null) return this._build(new hex_ioc_vo_ConstructorVO(null,"Instance",null,null,null,false,property.ref)); else if(property.staticRef != null) return hex_util_ClassUtil.getStaticVariableReference(property.staticRef); else {
 			var type;
 			if(property.type != null) type = property.type; else type = "String";
 			return this._build(new hex_ioc_vo_ConstructorVO(property.ownerID,type,[property.value]));
 		}
 	}
-	,_setPropertyValue: function(property,target) {
+	,_setPropertyValue: function(property,target,id) {
 		var propertyName = property.name;
 		if(propertyName.indexOf(".") == -1) Reflect.setProperty(target,propertyName,this._getPropertyValue(property)); else {
 			var props = propertyName.split(".");
@@ -6141,23 +6215,6 @@ hex_ioc_core_ContextFactory.prototype = {
 			Reflect.setProperty(target1,propertyName,this._getPropertyValue(property));
 		}
 	}
-	,deserializeArguments: function($arguments) {
-		var result = null;
-		var length = $arguments.length;
-		if(length > 0) result = [];
-		var _g = 0;
-		while(_g < $arguments.length) {
-			var obj = $arguments[_g];
-			++_g;
-			if(js_Boot.__instanceof(obj,hex_ioc_vo_PropertyVO)) result.push(this._getPropertyValue(obj)); else if(js_Boot.__instanceof(obj,hex_ioc_vo_MapVO)) {
-				var mapVO = obj;
-				mapVO.key = this._getPropertyValue(mapVO.getPropertyKey());
-				mapVO.value = this._getPropertyValue(mapVO.getPropertyValue());
-				result.push(mapVO);
-			}
-		}
-		return result;
-	}
 	,onRegister: function(key,instance) {
 		if(this._propertyVOLocator.isRegisteredWithKey(key)) {
 			var properties = this._propertyVOLocator.locate(key);
@@ -6165,7 +6222,7 @@ hex_ioc_core_ContextFactory.prototype = {
 			while(_g < properties.length) {
 				var p = properties[_g];
 				++_g;
-				this._setPropertyValue(p,instance);
+				this._setPropertyValue(p,instance,key);
 			}
 		}
 	}
@@ -6179,7 +6236,30 @@ hex_ioc_core_ContextFactory.prototype = {
 	,buildObject: function(id) {
 		if(this._constructorVOLocator.isRegisteredWithKey(id)) {
 			var cons = this._constructorVOLocator.locate(id);
-			if(cons["arguments"] != null) cons["arguments"] = this.deserializeArguments(cons["arguments"]);
+			var args = cons["arguments"];
+			if(args != null) {
+				if(cons.type == "hex.collection.HashMap" || cons.type == "hex.config.stateful.ServiceLocator") {
+					var result = [];
+					var _g = 0;
+					while(_g < args.length) {
+						var obj = args[_g];
+						++_g;
+						var mapVO = obj;
+						mapVO.key = this._build(mapVO.getPropertyKey());
+						mapVO.value = this._build(mapVO.getPropertyValue());
+						result.push(mapVO);
+					}
+					cons["arguments"] = result;
+				} else {
+					var $arguments = cons["arguments"];
+					var l = $arguments.length;
+					var _g1 = 0;
+					while(_g1 < l) {
+						var i = _g1++;
+						$arguments[i] = this._build($arguments[i]);
+					}
+				}
+			}
 			this._build(cons,id);
 			this._constructorVOLocator.unregister(id);
 		}
@@ -6209,54 +6289,7 @@ hex_ioc_core_ContextFactory.prototype = {
 		this._contextDispatcher.dispatch(hex_ioc_assembler_ApplicationAssemblerMessage.DOMAIN_LISTENERS_ASSIGNED);
 	}
 	,assignDomainListener: function(id) {
-		var domainListener = this._domainListenerVOLocator.locate(id);
-		var listener = this._coreFactory.locate(domainListener.ownerID);
-		var args = domainListener["arguments"];
-		var service = null;
-		if(this._coreFactory.isRegisteredWithKey(domainListener.listenedDomainName)) {
-			var located = this._coreFactory.locate(domainListener.listenedDomainName);
-			if(js_Boot.__instanceof(located,hex_service_IService)) service = located;
-		}
-		if(args != null && args.length > 0) {
-			var _g = 0;
-			while(_g < args.length) {
-				var domainListenerArgument = args[_g];
-				++_g;
-				var method;
-				if(js_Boot.__instanceof(listener,hex_event_EventProxy)) method = "handleCallback"; else method = domainListenerArgument.method;
-				var messageType;
-				if(domainListenerArgument.name != null) messageType = new hex_event_MessageType(domainListenerArgument.name); else messageType = this._coreFactory.getStaticReference(domainListenerArgument.staticRef);
-				if(method != null && Reflect.isFunction(Reflect.field(listener,method)) || domainListenerArgument.strategy != null) {
-					var callback;
-					if(domainListenerArgument.strategy != null) callback = this._getStrategyCallback(listener,method,domainListenerArgument.strategy,domainListenerArgument.injectedInModule); else callback = Reflect.field(listener,method);
-					if(service == null) {
-						var domain = hex_domain_DomainUtil.getDomain(domainListener.listenedDomainName,hex_domain_Domain);
-						this._applicationDomainHub.addHandler(messageType,listener,callback,domain);
-					} else service.addHandler(messageType,listener,callback);
-				} else if(method == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(Std.string(this) + ".assignDomainListener failed. Callback should be defined (use 'method' attribute) in instance of '" + hex_log_Stringifier.stringify(listener) + "' class with '" + domainListener.ownerID + "' id",{ fileName : "ContextFactory.hx", lineNumber : 332, className : "hex.ioc.core.ContextFactory", methodName : "assignDomainListener"})); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(Std.string(this) + ".assignDomainListener failed. Method named '" + method + "' can't be found in instance of '" + hex_log_Stringifier.stringify(listener) + "' class with '" + domainListener.ownerID + "' id",{ fileName : "ContextFactory.hx", lineNumber : 337, className : "hex.ioc.core.ContextFactory", methodName : "assignDomainListener"}));
-			}
-			return true;
-		} else {
-			var domain1 = hex_domain_DomainUtil.getDomain(domainListener.listenedDomainName,hex_domain_Domain);
-			return this._applicationDomainHub.addListener(listener,domain1);
-		}
-	}
-	,_getStrategyCallback: function(listener,method,strategyClassName,injectedInModule) {
-		if(injectedInModule == null) injectedInModule = false;
-		var callback = Reflect.field(listener,method);
-		var strategyClass = this._coreFactory.getClassReference(strategyClassName);
-		var adapter = new hex_event_ClassAdapter();
-		adapter.setCallBackMethod(listener,callback);
-		adapter.setAdapterClass(strategyClass);
-		adapter.setAnnotationProvider(this._annotationProvider);
-		if(injectedInModule && js_Boot.__instanceof(listener,hex_module_IModule)) {
-			var basicInjector = listener.getBasicInjector();
-			adapter.setFactoryMethod(basicInjector,$bind(basicInjector,basicInjector.instantiateUnmapped));
-		} else adapter.setFactoryMethod(this._applicationContext.getBasicInjector(),($_=this._applicationContext.getBasicInjector(),$bind($_,$_.instantiateUnmapped)));
-		var f = function(rest) {
-			(adapter.getCallbackAdapter())(rest);
-		};
-		return Reflect.makeVarArgs(f);
+		return hex_ioc_control_DomainListenerFactory.build(id,this._domainListenerVOLocator,this._applicationContext,this._annotationProvider);
 	}
 	,registerMethodCallVO: function(methodCallVO) {
 		var index = this._methodCallVOLocator.keys().length + 1;
@@ -6266,8 +6299,14 @@ hex_ioc_core_ContextFactory.prototype = {
 		var method = this._methodCallVOLocator.locate(id);
 		var cons = new hex_ioc_vo_ConstructorVO(null,"Function",[method.ownerID + "." + method.name]);
 		var func = this._build(cons);
-		var args = this.deserializeArguments(method["arguments"]);
-		Reflect.callMethod(this._coreFactory.locate(method.ownerID),func,args);
+		var $arguments = method["arguments"];
+		var l = $arguments.length;
+		var _g = 0;
+		while(_g < l) {
+			var i = _g++;
+			$arguments[i] = this._build($arguments[i]);
+		}
+		Reflect.callMethod(this._coreFactory.locate(method.ownerID),func,$arguments);
 	}
 	,callAllMethods: function() {
 		var keyList = this._methodCallVOLocator.keys();
@@ -6305,12 +6344,11 @@ hex_ioc_core_ContextFactory.prototype = {
 		this._domainListenerVOLocator.release();
 		this._stateTransitionVOLocator.release();
 		this._moduleLocator.release();
-		this._commandMap = new haxe_ds_StringMap();
+		this._factoryMap = new haxe_ds_StringMap();
 		this._IDExpert.clear();
 	}
 	,_init: function() {
-		this._commandMap = new haxe_ds_StringMap();
-		this._applicationDomainHub = hex_domain_ApplicationDomainDispatcher.getInstance();
+		this._factoryMap = new haxe_ds_StringMap();
 		this._IDExpert = new hex_ioc_core_IDExpert();
 		this._constructorVOLocator = new hex_ioc_locator_ConstructorVOLocator();
 		this._propertyVOLocator = new hex_ioc_locator_PropertyVOLocator();
@@ -6318,50 +6356,35 @@ hex_ioc_core_ContextFactory.prototype = {
 		this._domainListenerVOLocator = new hex_ioc_locator_DomainListenerVOLocator();
 		this._stateTransitionVOLocator = new hex_ioc_locator_StateTransitionVOLocator(this);
 		this._moduleLocator = new hex_ioc_locator_ModuleLocator(this);
-		var value = new hex_ioc_control_BuildArrayCommand();
-		this._commandMap.set("Array",value);
-		var value1 = new hex_ioc_control_BuildBooleanCommand();
-		this._commandMap.set("Bool",value1);
-		var value2 = new hex_ioc_control_BuildIntCommand();
-		this._commandMap.set("Int",value2);
-		var value3 = new hex_ioc_control_BuildNullCommand();
-		this._commandMap.set("null",value3);
-		var value4 = new hex_ioc_control_BuildFloatCommand();
-		this._commandMap.set("Float",value4);
-		var value5 = new hex_ioc_control_BuildObjectCommand();
-		this._commandMap.set("Object",value5);
-		var value6 = new hex_ioc_control_BuildStringCommand();
-		this._commandMap.set("String",value6);
-		var value7 = new hex_ioc_control_BuildUIntCommand();
-		this._commandMap.set("UInt",value7);
-		var value8 = new hex_ioc_control_BuildStringCommand();
-		this._commandMap.set("Default",value8);
-		var value9 = new hex_ioc_control_BuildMapCommand();
-		this._commandMap.set("hex.collection.HashMap",value9);
-		var value10 = new hex_ioc_control_BuildServiceLocatorCommand();
-		this._commandMap.set("hex.config.stateful.ServiceLocator",value10);
-		var value11 = new hex_ioc_control_BuildClassCommand();
-		this._commandMap.set("Class",value11);
-		var value12 = new hex_ioc_control_BuildXMLCommand();
-		this._commandMap.set("XML",value12);
-		var value13 = new hex_ioc_control_BuildFunctionCommand();
-		this._commandMap.set("Function",value13);
+		this._factoryMap.set("Array",hex_ioc_control_ArrayFactory.build);
+		this._factoryMap.set("Bool",hex_ioc_control_BoolFactory.build);
+		this._factoryMap.set("Int",hex_ioc_control_IntFactory.build);
+		this._factoryMap.set("null",hex_ioc_control_NullFactory.build);
+		this._factoryMap.set("Float",hex_ioc_control_FloatFactory.build);
+		this._factoryMap.set("Object",hex_ioc_control_DynamicObjectFactory.build);
+		this._factoryMap.set("String",hex_ioc_control_StringFactory.build);
+		this._factoryMap.set("UInt",hex_ioc_control_UIntFactory.build);
+		this._factoryMap.set("Default",hex_ioc_control_StringFactory.build);
+		this._factoryMap.set("hex.collection.HashMap",hex_ioc_control_HashMapFactory.build);
+		this._factoryMap.set("hex.config.stateful.ServiceLocator",hex_ioc_control_ServiceLocatorFactory.build);
+		this._factoryMap.set("Class",hex_ioc_control_ClassFactory.build);
+		this._factoryMap.set("XML",hex_ioc_control_XmlFactory.build);
+		this._factoryMap.set("Function",hex_ioc_control_FunctionFactory.build);
+		this._factoryMap.set("Instance",hex_ioc_control_ClassInstanceFactory.build);
+		this._factoryMap.set("StaticVariable",hex_ioc_control_StaticVariableFactory.build);
 		this._coreFactory.addListener(this);
-	}
-	,_addBuildCommand: function(type,build) {
-		this._commandMap.set(type,build);
 	}
 	,_build: function(constructorVO,id) {
 		var type = constructorVO.type;
-		var buildCommand;
-		if(this._commandMap.exists(type)) buildCommand = this._commandMap.get(type); else buildCommand = new hex_ioc_control_BuildInstanceCommand();
-		var builderHelperVO = new hex_ioc_vo_BuildHelperVO();
+		var buildMethod;
+		if(this._factoryMap.exists(type)) buildMethod = this._factoryMap.get(type); else buildMethod = hex_ioc_control_ClassInstanceFactory.build;
+		var builderHelperVO = new hex_ioc_vo_FactoryVO();
 		builderHelperVO.type = type;
 		builderHelperVO.contextFactory = this;
 		builderHelperVO.coreFactory = this._coreFactory;
 		builderHelperVO.constructorVO = constructorVO;
 		builderHelperVO.moduleLocator = this._moduleLocator;
-		buildCommand.execute(builderHelperVO);
+		buildMethod(builderHelperVO);
 		if(id != null) this._coreFactory.register(id,constructorVO.result);
 		return constructorVO.result;
 	}
@@ -6385,8 +6408,6 @@ hex_ioc_core_ICoreFactory.__interfaces__ = [hex_collection_ILocator];
 hex_ioc_core_ICoreFactory.prototype = {
 	getBasicInjector: null
 	,clear: null
-	,getClassReference: null
-	,getStaticReference: null
 	,buildInstance: null
 	,fastEvalFromTarget: null
 	,__class__: hex_ioc_core_ICoreFactory
@@ -6756,7 +6777,7 @@ hex_ioc_core_CoreFactory.prototype = {
 				return this.fastEvalFromTarget(target,props.join("."));
 			}
 		}
-		throw new js__$Boot_HaxeError(new hex_error_NoSuchElementException("Can't find item with '" + key + "' key in " + hex_log_Stringifier.stringify(this),{ fileName : "CoreFactory.hx", lineNumber : 80, className : "hex.ioc.core.CoreFactory", methodName : "locate"}));
+		throw new js__$Boot_HaxeError(new hex_error_NoSuchElementException("Can't find item with '" + key + "' key in " + hex_log_Stringifier.stringify(this),{ fileName : "CoreFactory.hx", lineNumber : 81, className : "hex.ioc.core.CoreFactory", methodName : "locate"}));
 	}
 	,isRegisteredWithKey: function(key) {
 		var key1 = key;
@@ -6777,7 +6798,7 @@ hex_ioc_core_CoreFactory.prototype = {
 			this._map.set(key,value);
 			this._dispatcher.dispatch(hex_collection_LocatorMessage.REGISTER,[key,element]);
 			return true;
-		} else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("register(" + key + ", " + Std.string(element) + ") fails, key is already registered.",{ fileName : "CoreFactory.hx", lineNumber : 103, className : "hex.ioc.core.CoreFactory", methodName : "register"}));
+		} else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("register(" + key + ", " + Std.string(element) + ") fails, key is already registered.",{ fileName : "CoreFactory.hx", lineNumber : 104, className : "hex.ioc.core.CoreFactory", methodName : "register"}));
 	}
 	,unregisterWithKey: function(key) {
 		if(this._map.exists(key)) {
@@ -6814,29 +6835,15 @@ hex_ioc_core_CoreFactory.prototype = {
 			}
 		}
 	}
-	,getClassReference: function(qualifiedClassName) {
-		var classReference = Type.resolveClass(qualifiedClassName);
-		if(classReference == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(hex_log_Stringifier.stringify(this) + ".getClassReference fails with class named '" + qualifiedClassName + "'",{ fileName : "CoreFactory.hx", lineNumber : 168, className : "hex.ioc.core.CoreFactory", methodName : "getClassReference"}));
-		return classReference;
-	}
-	,getStaticReference: function(qualifiedClassName) {
-		var a = qualifiedClassName.split(".");
-		var type = a[a.length - 1];
-		a.splice(a.length - 1,1);
-		var classReference = this.getClassReference(a.join("."));
-		var staticRef = Reflect.field(classReference,type);
-		if(staticRef == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(hex_log_Stringifier.stringify(this) + ".getStaticReference fails with '" + qualifiedClassName + "'",{ fileName : "CoreFactory.hx", lineNumber : 184, className : "hex.ioc.core.CoreFactory", methodName : "getStaticReference"}));
-		return staticRef;
-	}
 	,buildInstance: function(qualifiedClassName,args,factoryMethod,singletonAccess,instantiateUnmapped) {
 		if(instantiateUnmapped == null) instantiateUnmapped = false;
 		var classReference;
 		try {
-			classReference = this.getClassReference(qualifiedClassName);
+			classReference = hex_util_ClassUtil.getClassReference(qualifiedClassName);
 		} catch( e ) {
 			if (e instanceof js__$Boot_HaxeError) e = e.val;
 			if( js_Boot.__instanceof(e,hex_error_IllegalArgumentException) ) {
-				throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("'" + qualifiedClassName + "' class is not available in current domain",{ fileName : "CoreFactory.hx", lineNumber : 200, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
+				throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("'" + qualifiedClassName + "' class is not available in current domain",{ fileName : "CoreFactory.hx", lineNumber : 173, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
 			} else throw(e);
 		}
 		var obj = null;
@@ -6844,22 +6851,22 @@ hex_ioc_core_CoreFactory.prototype = {
 			if(singletonAccess != null) {
 				var inst = null;
 				var singletonCall = Reflect.field(classReference,singletonAccess);
-				if(singletonCall != null) inst = singletonCall(); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + singletonAccess + "()' singleton access failed.",{ fileName : "CoreFactory.hx", lineNumber : 222, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
+				if(singletonCall != null) inst = singletonCall(); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + singletonAccess + "()' singleton access failed.",{ fileName : "CoreFactory.hx", lineNumber : 195, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
 				var methodReference = Reflect.field(inst,factoryMethod);
-				if(methodReference != null) obj = Reflect.callMethod(inst,methodReference,args); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + singletonAccess + "()." + factoryMethod + "()' factory method call failed.",{ fileName : "CoreFactory.hx", lineNumber : 232, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
+				if(methodReference != null) obj = Reflect.callMethod(inst,methodReference,args); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + singletonAccess + "()." + factoryMethod + "()' factory method call failed.",{ fileName : "CoreFactory.hx", lineNumber : 205, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
 			} else {
 				var methodReference1 = Reflect.field(classReference,factoryMethod);
-				if(methodReference1 != null) obj = Reflect.callMethod(classReference,methodReference1,args); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + factoryMethod + "()' factory method call failed.",{ fileName : "CoreFactory.hx", lineNumber : 245, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
+				if(methodReference1 != null) obj = Reflect.callMethod(classReference,methodReference1,args); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + factoryMethod + "()' factory method call failed.",{ fileName : "CoreFactory.hx", lineNumber : 218, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
 			}
 		} else if(singletonAccess != null) {
 			var singletonCall1 = Reflect.field(classReference,singletonAccess);
-			if(singletonCall1 != null) obj = singletonCall1(); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + singletonAccess + "()' singleton call failed.",{ fileName : "CoreFactory.hx", lineNumber : 258, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
+			if(singletonCall1 != null) obj = singletonCall1(); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + singletonAccess + "()' singleton call failed.",{ fileName : "CoreFactory.hx", lineNumber : 231, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
 		} else {
 			try {
 				obj = Type.createInstance(classReference,args != null?args:[]);
 			} catch( e1 ) {
 				if (e1 instanceof js__$Boot_HaxeError) e1 = e1.val;
-				throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("Instantiation of class '" + qualifiedClassName + "' failed with arguments: " + Std.string(args) + " : " + Std.string(e1),{ fileName : "CoreFactory.hx", lineNumber : 269, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
+				throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("Instantiation of class '" + qualifiedClassName + "' failed with arguments: " + Std.string(args) + " : " + Std.string(e1),{ fileName : "CoreFactory.hx", lineNumber : 242, className : "hex.ioc.core.CoreFactory", methodName : "buildInstance"}));
 			}
 			if(js_Boot.__instanceof(obj,hex_core_IAnnotationParsable)) this._annotationProvider.parse(obj);
 			if(js_Boot.__instanceof(obj,hex_service_IService)) obj.createConfiguration();
@@ -7036,7 +7043,7 @@ hex_ioc_locator_StateTransitionVOLocator.prototype = $extend(hex_collection_Loca
 			var vo = this.locate(key);
 			var coreFactory = this._contextFactory.getCoreFactory();
 			var state = null;
-			if(vo.staticReference != null) state = coreFactory.getStaticReference(vo.staticReference); else if(vo.instanceReference != null) state = coreFactory.locate(vo.instanceReference); else throw new js__$Boot_HaxeError(new hex_ioc_error_BuildingException(Std.string(this) + ".buildStateTransition failed with id '" + key + "'",{ fileName : "StateTransitionVOLocator.hx", lineNumber : 54, className : "hex.ioc.locator.StateTransitionVOLocator", methodName : "buildStateTransition"}));
+			if(vo.staticReference != null) state = hex_util_ClassUtil.getStaticVariableReference(vo.staticReference); else if(vo.instanceReference != null) state = coreFactory.locate(vo.instanceReference); else throw new js__$Boot_HaxeError(new hex_ioc_error_BuildingException(Std.string(this) + ".buildStateTransition failed with id '" + key + "'",{ fileName : "StateTransitionVOLocator.hx", lineNumber : 54, className : "hex.ioc.locator.StateTransitionVOLocator", methodName : "buildStateTransition"}));
 			var stateUnmapper = null;
 			if(!this._stateUnmapper.containsKey(state)) {
 				stateUnmapper = new hex_ioc_locator__$StateTransitionVOLocator_StateUnmapper(state);
@@ -7048,7 +7055,7 @@ hex_ioc_locator_StateTransitionVOLocator.prototype = $extend(hex_collection_Loca
 			while(_g < enterList.length) {
 				var enterVO = enterList[_g];
 				++_g;
-				var enterCommandClass = coreFactory.getClassReference(enterVO.commandClassName);
+				var enterCommandClass = hex_util_ClassUtil.getClassReference(enterVO.commandClassName);
 				var enterMapping = new hex_control_command_CommandMapping(enterCommandClass);
 				var enterContextOwner = null;
 				if(enterVO.contextOwner != null) enterContextOwner = new hex_ioc_di_ContextOwnerWrapper(coreFactory,enterVO.contextOwner);
@@ -7062,7 +7069,7 @@ hex_ioc_locator_StateTransitionVOLocator.prototype = $extend(hex_collection_Loca
 			while(_g1 < exitList.length) {
 				var exitVO = exitList[_g1];
 				++_g1;
-				var exitCommandClass = coreFactory.getClassReference(exitVO.commandClassName);
+				var exitCommandClass = hex_util_ClassUtil.getClassReference(exitVO.commandClassName);
 				var exitMapping = new hex_control_command_CommandMapping(exitCommandClass);
 				var exitContextOwner = null;
 				if(exitVO.contextOwner != null) exitContextOwner = new hex_ioc_di_ContextOwnerWrapper(coreFactory,exitVO.contextOwner);
@@ -7314,7 +7321,7 @@ hex_ioc_parser_xml_ObjectXMLParser.prototype = $extend(hex_ioc_parser_xml_Abstra
 			if(xml.nodeType != Xml.Element) throw "Bad node type, expected Element but found " + xml.nodeType;
 			$r = xml.nodeName;
 			return $r;
-		}(this)) + "' node. You must set an id attribute.",{ fileName : "ObjectXMLParser.hx", lineNumber : 39, className : "hex.ioc.parser.xml.ObjectXMLParser", methodName : "_parseNode"}));
+		}(this)) + "' node. You must set an id attribute.",{ fileName : "ObjectXMLParser.hx", lineNumber : 41, className : "hex.ioc.parser.xml.ObjectXMLParser", methodName : "_parseNode"}));
 		var type;
 		var args;
 		var factory;
@@ -7326,12 +7333,11 @@ hex_ioc_parser_xml_ObjectXMLParser.prototype = $extend(hex_ioc_parser_xml_Abstra
 		var ifNotList;
 		type = hex_ioc_parser_xml_XMLAttributeUtil.getType(xml);
 		if(type == "XML") {
-			args = [];
-			args.push({ ownerID : identifier, value : xml.firstElement().toString()});
-			factory = hex_ioc_parser_xml_XMLAttributeUtil.getParserClass(xml);
+			factory = xml.get("parser-class");
+			args = [new hex_ioc_vo_ConstructorVO(identifier,"String",[xml.firstElement().toString()])];
 			this.getApplicationAssembler().buildObject(applicationContext,identifier,type,args,factory);
 		} else {
-			if(type == "hex.collection.HashMap" || type == "hex.config.stateful.ServiceLocator") args = hex_ioc_parser_xml_XMLParserUtil.getItems(xml); else args = hex_ioc_parser_xml_XMLParserUtil.getArguments(xml,type);
+			if(type == "hex.collection.HashMap" || type == "hex.config.stateful.ServiceLocator") args = hex_ioc_parser_xml_XMLParserUtil.getMapArguments(identifier,xml); else args = hex_ioc_parser_xml_XMLParserUtil.getArguments(identifier,xml,type);
 			factory = hex_ioc_parser_xml_XMLAttributeUtil.getFactoryMethod(xml);
 			singleton = hex_ioc_parser_xml_XMLAttributeUtil.getSingletonAccess(xml);
 			injectInto = hex_ioc_parser_xml_XMLAttributeUtil.getInjectInto(xml);
@@ -7339,7 +7345,7 @@ hex_ioc_parser_xml_ObjectXMLParser.prototype = $extend(hex_ioc_parser_xml_Abstra
 			staticRef = hex_ioc_parser_xml_XMLAttributeUtil.getStaticRef(xml);
 			ifList = hex_ioc_parser_xml_XMLParserUtil.getIfList(xml);
 			ifNotList = hex_ioc_parser_xml_XMLParserUtil.getIfNotList(xml);
-			if(type == null) if(staticRef != null) type = "Instance"; else type = "String";
+			if(type == null) if(staticRef != null) type = "StaticVariable"; else type = "String";
 			this.getApplicationAssembler().buildObject(applicationContext,identifier,type,args,factory,singleton,injectInto,mapType,staticRef,ifList,ifNotList);
 			var propertyIterator = xml.elementsNamed("property");
 			while(propertyIterator.hasNext()) {
@@ -7349,7 +7355,7 @@ hex_ioc_parser_xml_ObjectXMLParser.prototype = $extend(hex_ioc_parser_xml_Abstra
 			var methodCallIterator = xml.elementsNamed("method-call");
 			while(methodCallIterator.hasNext()) {
 				var methodCallItem = methodCallIterator.next();
-				this.getApplicationAssembler().buildMethodCall(applicationContext,identifier,hex_ioc_parser_xml_XMLAttributeUtil.getName(methodCallItem),hex_ioc_parser_xml_XMLParserUtil.getMethodCallArguments(methodCallItem),hex_ioc_parser_xml_XMLParserUtil.getIfList(methodCallItem),hex_ioc_parser_xml_XMLParserUtil.getIfNotList(methodCallItem));
+				this.getApplicationAssembler().buildMethodCall(applicationContext,identifier,hex_ioc_parser_xml_XMLAttributeUtil.getName(methodCallItem),hex_ioc_parser_xml_XMLParserUtil.getMethodCallArguments(identifier,methodCallItem),hex_ioc_parser_xml_XMLParserUtil.getIfList(methodCallItem),hex_ioc_parser_xml_XMLParserUtil.getIfNotList(methodCallItem));
 			}
 			var listenIterator = xml.elementsNamed("listen");
 			while(listenIterator.hasNext()) {
@@ -7363,7 +7369,7 @@ hex_ioc_parser_xml_ObjectXMLParser.prototype = $extend(hex_ioc_parser_xml_Abstra
 					if(xml.nodeType != Xml.Element) throw "Bad node type, expected Element but found " + xml.nodeType;
 					$r = xml.nodeName;
 					return $r;
-				}(this)) + "' node, 'ref' attribute is mandatory in a 'listen' node.",{ fileName : "ObjectXMLParser.hx", lineNumber : 122, className : "hex.ioc.parser.xml.ObjectXMLParser", methodName : "_parseNode"}));
+				}(this)) + "' node, 'ref' attribute is mandatory in a 'listen' node.",{ fileName : "ObjectXMLParser.hx", lineNumber : 123, className : "hex.ioc.parser.xml.ObjectXMLParser", methodName : "_parseNode"}));
 			}
 		}
 	}
@@ -7499,36 +7505,40 @@ var hex_ioc_parser_xml_XMLParserUtil = function() {
 };
 $hxClasses["hex.ioc.parser.xml.XMLParserUtil"] = hex_ioc_parser_xml_XMLParserUtil;
 hex_ioc_parser_xml_XMLParserUtil.__name__ = ["hex","ioc","parser","xml","XMLParserUtil"];
-hex_ioc_parser_xml_XMLParserUtil.getArguments = function(xml,type) {
+hex_ioc_parser_xml_XMLParserUtil.getArguments = function(ownerID,xml,type) {
 	var args = [];
 	var iterator = xml.elementsNamed("argument");
-	if(iterator.hasNext()) while(iterator.hasNext()) {
-		var item = iterator.next();
-		var argItem = { };
-		argItem.staticRef = item.get("static-ref");
-		argItem.ref = item.get("ref");
-		argItem.type = item.get("type");
-		argItem.value = item.get("value");
-		args.push(argItem);
-	} else {
+	if(iterator.hasNext()) while(iterator.hasNext()) args.push(hex_ioc_parser_xml_XMLParserUtil._getConstructorVOFromXML(ownerID,iterator.next())); else {
 		var value = hex_ioc_parser_xml_XMLAttributeUtil.getValue(xml);
-		if(value != null) args.push({ type : "String", value : xml.get("value")});
+		if(value != null) args.push(new hex_ioc_vo_ConstructorVO(ownerID,"String",[xml.get("value")]));
 	}
 	return args;
 };
-hex_ioc_parser_xml_XMLParserUtil.getMethodCallArguments = function(xml) {
+hex_ioc_parser_xml_XMLParserUtil._getConstructorVOFromXML = function(ownerID,item) {
+	var method = item.get("method");
+	var ref = item.get("ref");
+	var staticRef = item.get("static-ref");
+	if(method != null) return new hex_ioc_vo_ConstructorVO(null,"Function",[method]); else if(ref != null) return new hex_ioc_vo_ConstructorVO(null,"Instance",null,null,null,false,item.get("ref")); else if(staticRef != null) return new hex_ioc_vo_ConstructorVO(null,"StaticVariable",null,null,null,false,null,null,item.get("static-ref")); else {
+		var type = item.get("type");
+		if(type == null) type = "String";
+		return new hex_ioc_vo_ConstructorVO(ownerID,type,[item.get("value")]);
+	}
+};
+hex_ioc_parser_xml_XMLParserUtil._getConstructorVO = function(ownerID,item) {
+	var type = item.type;
+	var method = item.method;
+	var ref = item.ref;
+	var staticRef = item.staticRef;
+	var value = item.value;
+	if(method != null) return new hex_ioc_vo_ConstructorVO(null,"Function",[method]); else if(ref != null) return new hex_ioc_vo_ConstructorVO(null,"Instance",null,null,null,false,ref); else if(staticRef != null) return new hex_ioc_vo_ConstructorVO(null,"Instance",null,null,null,false,null,null,staticRef); else {
+		if(type == null) type = "String";
+		return new hex_ioc_vo_ConstructorVO(ownerID,type,[value]);
+	}
+};
+hex_ioc_parser_xml_XMLParserUtil.getMethodCallArguments = function(ownerID,xml) {
 	var args = [];
 	var iterator = xml.elementsNamed("argument");
-	while(iterator.hasNext()) {
-		var item = iterator.next();
-		var argItem = { };
-		argItem.id = item.get("id");
-		argItem.staticRef = item.get("static-ref");
-		argItem.ref = item.get("ref");
-		argItem.type = item.get("type");
-		argItem.value = item.get("value");
-		args.push(argItem);
-	}
+	while(iterator.hasNext()) args.push(hex_ioc_parser_xml_XMLParserUtil._getConstructorVOFromXML(ownerID,iterator.next()));
 	return args;
 };
 hex_ioc_parser_xml_XMLParserUtil.getEventArguments = function(xml) {
@@ -7546,14 +7556,18 @@ hex_ioc_parser_xml_XMLParserUtil.getEventArguments = function(xml) {
 	}
 	return args;
 };
-hex_ioc_parser_xml_XMLParserUtil.getItems = function(xml) {
+hex_ioc_parser_xml_XMLParserUtil.getMapArguments = function(ownerID,xml) {
 	var args = [];
 	var iterator = xml.elementsNamed("item");
 	while(iterator.hasNext()) {
 		var item = iterator.next();
 		var keyList = item.elementsNamed("key");
 		var valueList = item.elementsNamed("value");
-		if(keyList.hasNext()) args.push({ mapName : hex_ioc_parser_xml_XMLAttributeUtil.getMapName(item), key : hex_ioc_parser_xml_XMLParserUtil._getAttributes(keyList.next()), value : hex_ioc_parser_xml_XMLParserUtil._getAttributes(valueList.next())});
+		if(keyList.hasNext()) {
+			var key = hex_ioc_parser_xml_XMLParserUtil._getAttributes(keyList.next());
+			var value = hex_ioc_parser_xml_XMLParserUtil._getAttributes(valueList.next());
+			args.push(new hex_ioc_vo_MapVO(hex_ioc_parser_xml_XMLParserUtil._getConstructorVO(ownerID,key),hex_ioc_parser_xml_XMLParserUtil._getConstructorVO(ownerID,value),hex_ioc_parser_xml_XMLAttributeUtil.getMapName(item)));
+		}
 	}
 	return args;
 };
@@ -7580,18 +7594,6 @@ hex_ioc_parser_xml_XMLParserUtil.prototype = {
 var hex_ioc_parser_xml_XmlReader = function() { };
 $hxClasses["hex.ioc.parser.xml.XmlReader"] = hex_ioc_parser_xml_XmlReader;
 hex_ioc_parser_xml_XmlReader.__name__ = ["hex","ioc","parser","xml","XmlReader"];
-var hex_ioc_vo_BuildHelperVO = function() {
-};
-$hxClasses["hex.ioc.vo.BuildHelperVO"] = hex_ioc_vo_BuildHelperVO;
-hex_ioc_vo_BuildHelperVO.__name__ = ["hex","ioc","vo","BuildHelperVO"];
-hex_ioc_vo_BuildHelperVO.prototype = {
-	type: null
-	,contextFactory: null
-	,coreFactory: null
-	,constructorVO: null
-	,moduleLocator: null
-	,__class__: hex_ioc_vo_BuildHelperVO
-};
 var hex_ioc_vo_CommandMappingVO = function(commandClassName,fireOnce,contextOwner) {
 	if(fireOnce == null) fireOnce = false;
 	this.commandClassName = commandClassName;
@@ -7668,9 +7670,22 @@ hex_ioc_vo_DomainListenerVOArguments.prototype = {
 	,injectedInModule: null
 	,__class__: hex_ioc_vo_DomainListenerVOArguments
 };
-var hex_ioc_vo_MapVO = function(key,value) {
+var hex_ioc_vo_FactoryVO = function() {
+};
+$hxClasses["hex.ioc.vo.FactoryVO"] = hex_ioc_vo_FactoryVO;
+hex_ioc_vo_FactoryVO.__name__ = ["hex","ioc","vo","FactoryVO"];
+hex_ioc_vo_FactoryVO.prototype = {
+	type: null
+	,contextFactory: null
+	,coreFactory: null
+	,constructorVO: null
+	,moduleLocator: null
+	,__class__: hex_ioc_vo_FactoryVO
+};
+var hex_ioc_vo_MapVO = function(key,value,mapName) {
 	this._key = key;
 	this._value = value;
+	this.mapName = mapName;
 };
 $hxClasses["hex.ioc.vo.MapVO"] = hex_ioc_vo_MapVO;
 hex_ioc_vo_MapVO.__name__ = ["hex","ioc","vo","MapVO"];
@@ -7679,6 +7694,7 @@ hex_ioc_vo_MapVO.prototype = {
 	,_value: null
 	,key: null
 	,value: null
+	,mapName: null
 	,getPropertyKey: function() {
 		return this._key;
 	}
@@ -7721,17 +7737,6 @@ hex_ioc_vo_PropertyVO.prototype = {
 	,staticRef: null
 	,__class__: hex_ioc_vo_PropertyVO
 };
-var hex_ioc_vo_ServiceLocatorVO = function(key,value,mapName) {
-	hex_ioc_vo_MapVO.call(this,key,value);
-	this.mapName = mapName;
-};
-$hxClasses["hex.ioc.vo.ServiceLocatorVO"] = hex_ioc_vo_ServiceLocatorVO;
-hex_ioc_vo_ServiceLocatorVO.__name__ = ["hex","ioc","vo","ServiceLocatorVO"];
-hex_ioc_vo_ServiceLocatorVO.__super__ = hex_ioc_vo_MapVO;
-hex_ioc_vo_ServiceLocatorVO.prototype = $extend(hex_ioc_vo_MapVO.prototype,{
-	mapName: null
-	,__class__: hex_ioc_vo_ServiceLocatorVO
-});
 var hex_ioc_vo_StateTransitionVO = function(ID,staticReference,instanceReference,enterList,exitList) {
 	this.ID = ID;
 	this.staticReference = staticReference;
@@ -8964,8 +8969,39 @@ hex_util_ClassUtil.classExtendsOrImplements = function(classOrClassName,superCla
 	var classInstance = Type.createEmptyInstance(actualClass);
 	return js_Boot.__instanceof(classInstance,superClass);
 };
+hex_util_ClassUtil.getStaticVariableReference = function(qualifiedClassName) {
+	var a = qualifiedClassName.split(".");
+	var type = a[a.length - 1];
+	a.splice(a.length - 1,1);
+	var classReference = hex_util_ClassUtil.getClassReference(a.join("."));
+	var staticRef = Reflect.field(classReference,type);
+	if(staticRef == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("ClassUtil.getStaticReference fails with '" + qualifiedClassName + "'",{ fileName : "ClassUtil.hx", lineNumber : 73, className : "hex.util.ClassUtil", methodName : "getStaticVariableReference"}));
+	return staticRef;
+};
+hex_util_ClassUtil.getClassNameFromStaticReference = function(qualifiedClassName) {
+	var a = qualifiedClassName.split(".");
+	var type = a[a.length - 1];
+	a.splice(a.length - 1,1);
+	return a.join(".");
+};
+hex_util_ClassUtil.getStaticVariableNameFromStaticReference = function(qualifiedClassName) {
+	var a = qualifiedClassName.split(".");
+	return a[a.length - 1];
+};
+hex_util_ClassUtil.getClassReference = function(qualifiedClassName) {
+	var classReference = Type.resolveClass(qualifiedClassName);
+	if(classReference == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("ClassUtil.getClassReference fails with class named '" + qualifiedClassName + "'",{ fileName : "ClassUtil.hx", lineNumber : 99, className : "hex.util.ClassUtil", methodName : "getClassReference"}));
+	return classReference;
+};
 hex_util_ClassUtil.prototype = {
 	__class__: hex_util_ClassUtil
+};
+var hex_util_MacroUtil = function() {
+};
+$hxClasses["hex.util.MacroUtil"] = hex_util_MacroUtil;
+hex_util_MacroUtil.__name__ = ["hex","util","MacroUtil"];
+hex_util_MacroUtil.prototype = {
+	__class__: hex_util_MacroUtil
 };
 var hex_view_viewhelper_IMainViewHelperManagerListener = function() { };
 $hxClasses["hex.view.viewhelper.IMainViewHelperManagerListener"] = hex_view_viewhelper_IMainViewHelperManagerListener;
@@ -9159,15 +9195,14 @@ com_tenderowls_xml176_Xml176Parser.escapes = (function($this) {
 	$r = h;
 	return $r;
 }(this));
-hex_config_stateless_StatelessCommandConfig.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"frontController\",\"type\":\"hex.control.IFrontController\",\"key\":\"\"}],\"name\":\"hex.config.stateless.StatelessCommandConfig\",\"methods\":[]}"]}};
-example_module_gallery__$GalleryModule_GalleryCommandConfig.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"frontController\",\"type\":\"hex.control.IFrontController\",\"key\":\"\"}],\"name\":\"example.module.gallery.GalleryModule\",\"methods\":[]}"]}};
-hex_config_stateless_StatelessModelConfig.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"injector\",\"type\":\"hex.di.IDependencyInjector\",\"key\":\"\"}],\"name\":\"hex.config.stateless.StatelessModelConfig\",\"methods\":[]}"]}};
-example_module_gallery__$GalleryModule_GalleryModelConfig.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"injector\",\"type\":\"hex.di.IDependencyInjector\",\"key\":\"\"}],\"name\":\"example.module.gallery.GalleryModule\",\"methods\":[]}"]}};
+hex_config_stateless_StatelessModuleConfig.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"injector\",\"type\":\"hex.di.IDependencyInjector\",\"key\":\"\"}],\"name\":\"hex.config.stateless.StatelessModuleConfig\",\"methods\":[]}"]}};
+example_module_gallery__$GalleryModule_GalleryModuleConfig.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"injector\",\"type\":\"hex.di.IDependencyInjector\",\"key\":\"\"}],\"name\":\"example.module.gallery.GalleryModule\",\"methods\":[]}"]}};
+hex_control_controller_Controller.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"module\",\"type\":\"hex.module.IModule\",\"key\":\"\"},{\"isOpt\":false,\"name\":\"injector\",\"type\":\"hex.di.IDependencyInjector\",\"key\":\"\"}],\"name\":\"hex.control.controller.Controller\",\"methods\":[]}"]}};
+example_module_gallery_controller_GalleryController.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"module\",\"type\":\"hex.module.IModule\",\"key\":\"\"},{\"isOpt\":false,\"name\":\"injector\",\"type\":\"hex.di.IDependencyInjector\",\"key\":\"\"}],\"name\":\"example.module.gallery.controller.GalleryController\",\"methods\":[]}"]}};
 example_module_gallery_controller_LoadPhotosCommand.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"photosService\",\"type\":\"example.module.gallery.service.IGetPhotosService\",\"key\":\"\"},{\"isOpt\":false,\"name\":\"galleryModel\",\"type\":\"example.module.gallery.model.IGalleryModel\",\"key\":\"\"}],\"name\":\"example.module.gallery.controller.LoadPhotosCommand\",\"methods\":[]}"]}};
-example_module_gallery_message_GalleryModuleMessage.LOAD_PHOTOS = new hex_event_MessageType("loadPhotos");
 hex_view_viewhelper_ViewHelper.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"dispatcher\",\"type\":\"hex.event.IDispatcher\",\"key\":\"\"}],\"name\":\"hex.view.viewhelper.ViewHelper\",\"methods\":[]}"]}};
 hex_view_viewhelper_ViewHelper.DEFAULT_VISIBLE = true;
-example_module_gallery_view_GalleryViewHelper.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"dispatcher\",\"type\":\"hex.event.IDispatcher\",\"key\":\"\"},{\"isOpt\":false,\"name\":\"_model\",\"type\":\"example.module.gallery.model.IGalleryModelRO\",\"key\":\"\"}],\"name\":\"example.module.gallery.view.GalleryViewHelper\",\"methods\":[]}"]}};
+example_module_gallery_view_GalleryViewHelper.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"dispatcher\",\"type\":\"hex.event.IDispatcher\",\"key\":\"\"},{\"isOpt\":false,\"name\":\"_model\",\"type\":\"example.module.gallery.model.IGalleryModelRO\",\"key\":\"\"},{\"isOpt\":false,\"name\":\"_controller\",\"type\":\"example.module.gallery.controller.IGalleryController\",\"key\":\"\"}],\"name\":\"example.module.gallery.view.GalleryViewHelper\",\"methods\":[]}"]}};
 hex_service_AbstractService.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[],\"name\":\"hex.service.AbstractService\",\"methods\":[]}"]}, fields : { createConfiguration : { postConstruct : null}}};
 hex_service_stateless_StatelessService.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[],\"name\":\"hex.service.stateless.StatelessService\",\"methods\":[]}"]}};
 hex_service_stateless_StatelessService.WAS_NEVER_USED = "WAS_NEVER_USED";
@@ -9266,6 +9301,7 @@ hex_ioc_core_ContextNameList.ROOT = "root";
 hex_ioc_core_ContextTypeList.ARRAY = "Array";
 hex_ioc_core_ContextTypeList.BOOLEAN = "Bool";
 hex_ioc_core_ContextTypeList.INSTANCE = "Instance";
+hex_ioc_core_ContextTypeList.STATIC_VARIABLE = "StaticVariable";
 hex_ioc_core_ContextTypeList.INT = "Int";
 hex_ioc_core_ContextTypeList.NULL = "null";
 hex_ioc_core_ContextTypeList.FLOAT = "Float";
