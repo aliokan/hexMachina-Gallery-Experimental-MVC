@@ -1,8 +1,6 @@
 package example;
 
-import hex.ioc.assembler.ApplicationAssembler;
-import hex.ioc.parser.xml.ApplicationXMLParser;
-import hex.ioc.parser.xml.XMLReader;
+import hex.compiler.parser.xml.XmlCompiler;
 import hex.log.layout.LogProxyLayout;
 
 /**
@@ -33,10 +31,11 @@ class FlickrExample
 	
 	public function new()
 	{
-		this._build( this._getApplicationXml() );
+		//this._build( this._getApplicationXml() );
+		XmlCompiler.readXmlFile( "example/configuration/context.xml" );
 	}
 	
-	function _getApplicationXml( ):Xml
+	/*function _getApplicationXml( ):Xml
 	{
 		var source = XmlReader.readXmlFile( "example/configuration/context.xml" );
 		
@@ -51,5 +50,5 @@ class FlickrExample
 		normalParser.parse( applicationAssembler, xml );
 		
 		applicationAssembler.buildEverything();
-	}
+	}*/
 }
