@@ -24,7 +24,6 @@ class FlickrExample
 		proxy.addListener( new hex.log.layout.TraceLayout() );
 		#end
 		
-		//todo zubi why is in debug? - ANSWER: to let the js instantiate when it is on it's correct place
 		self = new FlickrExample(); 
 		#end
 	}
@@ -34,21 +33,4 @@ class FlickrExample
 		//this._build( this._getApplicationXml() );
 		XmlCompiler.readXmlFile( "example/configuration/context.xml" );
 	}
-	
-	/*function _getApplicationXml( ):Xml
-	{
-		var source = XmlReader.readXmlFile( "example/configuration/context.xml" );
-		
-		return Xml.parse( source );
-	}
-	
-	function _build( xml : Xml ) : Void
-	{
-		var applicationAssembler = new ApplicationAssembler();
-		
-		var normalParser : ApplicationXMLParser = new ApplicationXMLParser();
-		normalParser.parse( applicationAssembler, xml );
-		
-		applicationAssembler.buildEverything();
-	}*/
 }

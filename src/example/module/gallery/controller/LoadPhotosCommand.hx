@@ -5,7 +5,6 @@ import example.module.gallery.service.IGetPhotosService;
 import hex.control.Request;
 import hex.control.command.BasicCommand;
 import hex.di.IInjectorContainer;
-import hex.log.Logger;
 import hex.service.stateless.http.HTTPServiceConfiguration;
 import hex.service.stateless.http.IHTTPService;
 import hex.service.stateless.http.IHTTPServiceListener;
@@ -30,7 +29,7 @@ class LoadPhotosCommand extends BasicCommand implements IHTTPServiceListener<HTT
 	
 	public function execute(?request:Request):Void 
 	{
-		Logger.DEBUG( "LoadPhotosCommand execute" );
+		this.getLogger().info( "LoadPhotosCommand execute" );
 		photosService.addHTTPServiceListener( this );
 		photosService.call();
 	}
@@ -42,15 +41,15 @@ class LoadPhotosCommand extends BasicCommand implements IHTTPServiceListener<HTT
 	
 	public function onServiceFail( service : IHTTPService<HTTPServiceConfiguration> ) : Void
 	{
-		Logger.DEBUG( "onServiceFail" );
+		this.getLogger().error( "onServiceFail" );
 	}
 	public function onServiceCancel( service : IHTTPService<HTTPServiceConfiguration> ) : Void
 	{
-		Logger.DEBUG( "onServiceCancel" );
+		this.getLogger().info( "onServiceCancel" );
 	}
 	public function onServiceTimeout( service : IHTTPService<HTTPServiceConfiguration> ) : Void
 	{
-		Logger.DEBUG( "onServiceTimeout" );
+		this.getLogger().error( "onServiceTimeout" );
 	}
 	
 }

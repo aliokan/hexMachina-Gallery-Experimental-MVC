@@ -1,8 +1,7 @@
 package example.module.gallery.model;
-import example.module.gallery.vo.PhotoVO;
-import hex.model.IModelDispatcher;
-import hex.model.Model;
+
 import example.module.gallery.model.IGalleryModelListener;
+import example.module.gallery.vo.PhotoVO;
 
 /**
  * ...
@@ -19,27 +18,24 @@ class GalleryModel implements IGalleryModel
 		dispatcher = new GalleryModelDispatcher();
 	}
 	
-	/* INTERFACE example.module.gallery.model.IGalleryModel */
-	
 	public function setPhotos(photos:Array<PhotoVO>):Void 
 	{
 		this._photos = photos;
 		dispatcher.onPhotosLoaded( this._photos );
 	}
 	
-	public function getPhotos():Array<PhotoVO> 
+	public function getPhotos() : Array<PhotoVO> 
 	{
 		return this._photos;
 	}
 	
-	public function addListener( listener : IGalleryModelListener ):Void
+	public function addListener( listener : IGalleryModelListener ) : Void
 	{
 		this.dispatcher.addListener( listener );
 	}
 
-	public function removeListener( listener : IGalleryModelListener ):Void
+	public function removeListener( listener : IGalleryModelListener ) : Void
 	{
 		this.dispatcher.removeListener( listener );
 	}
-	
 }
