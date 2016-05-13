@@ -32,11 +32,12 @@ class GalleryViewHelper extends ViewHelper implements IGalleryModelListener
 		
 		this._layoutView = cast this._view;
 		this._model.addListener( this );
-		this._controller.loadPhotos();
+		this._controller.loadPhotos().onComplete( this.onPhotosLoaded );
 	}
 	
-	public function onPhotosLoaded( photos:Array<PhotoVO> ) : Void
+	public function onPhotosLoaded( photos : Array<PhotoVO> ) : Void
 	{
+		this.getLogger().info( "onPhotosLoaded" );
 		this._layoutView.setPhotos( photos );
 	}
 	

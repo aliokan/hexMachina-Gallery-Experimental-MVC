@@ -1,7 +1,8 @@
 package example.module.gallery.controller;
 
+import example.module.gallery.vo.PhotoVO;
 import hex.control.controller.Controller;
-import hex.control.controller.IObservable;
+import hex.control.controller.ICompletable;
 
 /**
  * ...
@@ -9,6 +10,6 @@ import hex.control.controller.IObservable;
  */
 class GalleryController extends Controller implements IGalleryController
 {
-	@CommandClass( "example.module.gallery.controller.LoadPhotosCommand" )
-	public function loadPhotos() : IObservable {}
+	@CommandClass( "example.module.gallery.controller.LoadPhotosAction" )
+	public function loadPhotos() : ICompletable<Array<PhotoVO>> {}
 }
