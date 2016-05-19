@@ -10,6 +10,6 @@ import hex.control.controller.ICompletable;
  */
 class GalleryController extends Controller implements IGalleryController
 {
-	@CommandClass( "example.module.gallery.controller.LoadPhotosAction" )
+	@Class( "example.module.gallery.controller.LoadPhotosOrder" )
 	public function loadPhotos() : ICompletable<Array<PhotoVO>> {}
 }

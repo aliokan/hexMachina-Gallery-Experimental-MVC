@@ -27,14 +27,12 @@ class GalleryModule extends Module implements IGalleryModule
 		this._addStatefulConfigs( [ serviceConfig ] );
 		this._addStatelessConfigClasses( [ GalleryModuleConfig ] );
 		this.buildView();
-		
-		
 	}
 	
 	override function _getRuntimeDependencies() : IRuntimeDependencies
 	{
 		var rd = new RuntimeDependencies();
-		rd.addServiceDependencies( [ IGetPhotosService ] );
+		rd.addMappedDependencies( [ IGetPhotosService ] );
 		return rd;
 	}
 	
@@ -45,7 +43,7 @@ class GalleryModule extends Module implements IGalleryModule
 			flash.Lib.current.addChild( container );
 			this.buildViewHelper( GalleryViewHelper, new example.module.gallery.view.GalleryViewFlash(container) );
 		#elseif js
-			this.buildViewHelper( GalleryViewHelper, new example.module.gallery.view.GalleryViewJS(js.Browser.document.querySelector(".gallery")) );
+			this.buildViewHelper( GalleryViewHelper, new example.module.gallery.view.GalleryViewJS(js.Browser.document.querySelector(".gallery") ) );
 		#else 
 			#error  // will display an error "Not implemented on this platform"
 		#end

@@ -1,15 +1,12 @@
 package example.module.gallery.service;
 
-import hex.service.ServiceConfiguration;
-import hex.service.stateless.http.IHTTPService;
-import hex.service.stateless.IStatelessService;
-import hex.service.stateless.http.HTTPServiceConfiguration;
 import example.module.gallery.vo.PhotoVO;
+import hex.control.controller.ICompletable;
 
 /**
- * @author Andrei Bunulu
+ * @author Francis Bourre
  */
-interface IGetPhotosService extends IHTTPService<HTTPServiceConfiguration>
+interface IGetPhotosService 
 {
-  function getPhotos() : Array<PhotoVO>;
+	function getPhotos() : ICompletable<Array<PhotoVO>>;
 }

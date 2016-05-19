@@ -10,7 +10,7 @@ import hex.log.layout.LogProxyLayout;
 @:expose("FlickrExample")
 class FlickrExample
 {
-	static var self:FlickrExample;
+	static var self : FlickrExample;
 
 	static public function main() : Void
 	{
@@ -30,7 +30,6 @@ class FlickrExample
 	
 	public function new()
 	{
-		//this._build( this._getApplicationXml() );
 		XmlCompiler.readXmlFile( "example/configuration/context.xml" );
 	}
 }

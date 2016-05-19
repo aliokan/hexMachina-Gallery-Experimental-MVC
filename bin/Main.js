@@ -1,5 +1,5 @@
-(function (console, $hx_exports, $global) { "use strict";
-var $hxClasses = {};
+(function (console, $hx_exports) { "use strict";
+var $hxClasses = {},$estr = function() { return js_Boot.__string_rec(this,''); };
 function $extend(from, fields) {
 	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
 	for (var name in fields) proto[name] = fields[name];
@@ -19,9 +19,6 @@ EReg.prototype = {
 		this.r.m = this.r.exec(s);
 		this.r.s = s;
 		return this.r.m != null;
-	}
-	,replace: function(s,by) {
-		return s.replace(this.r,by);
 	}
 	,__class__: EReg
 };
@@ -212,29 +209,6 @@ StringBuf.prototype = {
 var StringTools = function() { };
 $hxClasses["StringTools"] = StringTools;
 StringTools.__name__ = ["StringTools"];
-StringTools.htmlEscape = function(s,quotes) {
-	s = s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
-	if(quotes) return s.split("\"").join("&quot;").split("'").join("&#039;"); else return s;
-};
-StringTools.isSpace = function(s,pos) {
-	var c = HxOverrides.cca(s,pos);
-	return c > 8 && c < 14 || c == 32;
-};
-StringTools.ltrim = function(s) {
-	var l = s.length;
-	var r = 0;
-	while(r < l && StringTools.isSpace(s,r)) r++;
-	if(r > 0) return HxOverrides.substr(s,r,l - r); else return s;
-};
-StringTools.rtrim = function(s) {
-	var l = s.length;
-	var r = 0;
-	while(r < l && StringTools.isSpace(s,l - r - 1)) r++;
-	if(r > 0) return HxOverrides.substr(s,0,l - r); else return s;
-};
-StringTools.trim = function(s) {
-	return StringTools.ltrim(StringTools.rtrim(s));
-};
 StringTools.fastCodeAt = function(s,index) {
 	return s.charCodeAt(index);
 };
@@ -378,20 +352,6 @@ Xml.prototype = {
 		if(this.nodeType != Xml.Element) throw new js__$Boot_HaxeError("Bad node type, expected Element but found " + this.nodeType);
 		return this.attributeMap.keys();
 	}
-	,elements: function() {
-		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) throw new js__$Boot_HaxeError("Bad node type, expected Element or Document but found " + this.nodeType);
-		var ret;
-		var _g = [];
-		var _g1 = 0;
-		var _g2 = this.children;
-		while(_g1 < _g2.length) {
-			var child = _g2[_g1];
-			++_g1;
-			if(child.nodeType == Xml.Element) _g.push(child);
-		}
-		ret = _g;
-		return HxOverrides.iter(ret);
-	}
 	,elementsNamed: function(name) {
 		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) throw new js__$Boot_HaxeError("Bad node type, expected Element or Document but found " + this.nodeType);
 		var ret;
@@ -411,17 +371,6 @@ Xml.prototype = {
 		ret = _g;
 		return HxOverrides.iter(ret);
 	}
-	,firstElement: function() {
-		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) throw new js__$Boot_HaxeError("Bad node type, expected Element or Document but found " + this.nodeType);
-		var _g = 0;
-		var _g1 = this.children;
-		while(_g < _g1.length) {
-			var child = _g1[_g];
-			++_g;
-			if(child.nodeType == Xml.Element) return child;
-		}
-		return null;
-	}
 	,addChild: function(x) {
 		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) throw new js__$Boot_HaxeError("Bad node type, expected Element or Document but found " + this.nodeType);
 		if(x.parent != null) x.parent.removeChild(x);
@@ -435,9 +384,6 @@ Xml.prototype = {
 			return true;
 		}
 		return false;
-	}
-	,toString: function() {
-		return haxe_xml_Printer.print(this);
 	}
 	,__class__: Xml
 };
@@ -806,7 +752,16 @@ com_tenderowls_xml176_Xml176Parser.isValidChar = function(c) {
 	return c >= 97 && c <= 122 || c >= 65 && c <= 90 || c >= 48 && c <= 57 || c == 58 || c == 46 || c == 95 || c == 45;
 };
 var example_FlickrExample = $hx_exports.FlickrExample = function() {
-	this._build(this._getApplicationXml());
+	console.log("XmlCompiler starts compilation...");
+	var applicationAssembler = new hex_ioc_assembler_ApplicationAssembler();
+	var applicationContext = applicationAssembler.getApplicationContext("flickr");
+	var coreFactory = applicationContext.getCoreFactory();
+	var flickerServiceLocator = new hex_ioc_di_MappingConfiguration();
+	flickerServiceLocator.addMapping(example_module_gallery_service_IGetPhotosService,example_service_flickr_FlickrService,null,false);
+	coreFactory.register("flickerServiceLocator",flickerServiceLocator);
+	var gallery = new example_module_gallery_GalleryModule(flickerServiceLocator);
+	coreFactory.register("gallery",gallery);
+	applicationAssembler;
 };
 $hxClasses["example.FlickrExample"] = example_FlickrExample;
 example_FlickrExample.__name__ = ["example","FlickrExample"];
@@ -818,17 +773,7 @@ example_FlickrExample.main = function() {
 	example_FlickrExample.self = new example_FlickrExample();
 };
 example_FlickrExample.prototype = {
-	_getApplicationXml: function() {
-		var source = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\r\n<root name=\"flickr\">\r\n\t\n\t<!-- MODULES -->\r\n\t<module id=\"gallery\" type=\"example.module.gallery.GalleryModule\">\r\n\t\t<argument ref=\"flickerServiceLocator\"/>\r\n\t</module>\r\n\t\r\n\r\n\t\n\t<serviceLocator id=\"flickerServiceLocator\" type=\"hex.config.stateful.ServiceLocator\" >\r\n\t\t<item> \r\n\t\t\t<key type=\"Class\" value=\"example.module.gallery.service.IGetPhotosService\"/>\r\n\t\t\t<value type=\"Class\" value=\"example.service.flickr.FlickrGetPhotos\"/>\r\n\t\t</item>\r\n\t</serviceLocator>\r\n\r\n\t\n\r\n\t\t\r\n\r\n</root>";
-		return Xml.parse(source);
-	}
-	,_build: function(xml) {
-		var applicationAssembler = new hex_ioc_assembler_ApplicationAssembler();
-		var normalParser = new hex_ioc_parser_xml_ApplicationXMLParser();
-		normalParser.parse(applicationAssembler,xml);
-		applicationAssembler.buildEverything();
-	}
-	,__class__: example_FlickrExample
+	__class__: example_FlickrExample
 };
 var hex_di_IContextOwner = function() { };
 $hxClasses["hex.di.IContextOwner"] = hex_di_IContextOwner;
@@ -979,6 +924,7 @@ example_module_gallery_IGalleryModule.__name__ = ["example","module","gallery","
 example_module_gallery_IGalleryModule.__interfaces__ = [hex_module_IModule];
 var example_module_gallery_GalleryModule = function(serviceConfig) {
 	hex_module_Module.call(this);
+	this.getLogger().info("GalleryModule initialized",{ fileName : "GalleryModule.hx", lineNumber : 25, className : "example.module.gallery.GalleryModule", methodName : "new"});
 	this._addStatefulConfigs([serviceConfig]);
 	this._addStatelessConfigClasses([example_module_gallery__$GalleryModule_GalleryModuleConfig]);
 	this.buildView();
@@ -990,7 +936,7 @@ example_module_gallery_GalleryModule.__super__ = hex_module_Module;
 example_module_gallery_GalleryModule.prototype = $extend(hex_module_Module.prototype,{
 	_getRuntimeDependencies: function() {
 		var rd = new hex_module_dependency_RuntimeDependencies();
-		rd.addServiceDependencies([example_module_gallery_service_IGetPhotosService]);
+		rd.addMappedDependencies([example_module_gallery_service_IGetPhotosService]);
 		return rd;
 	}
 	,buildView: function() {
@@ -1074,40 +1020,70 @@ example_module_gallery_controller_GalleryController.__interfaces__ = [example_mo
 example_module_gallery_controller_GalleryController.__super__ = hex_control_controller_Controller;
 example_module_gallery_controller_GalleryController.prototype = $extend(hex_control_controller_Controller.prototype,{
 	loadPhotos: function() {
-		var command = this.injector.getOrCreateNewInstance(example_module_gallery_controller_LoadPhotosCommand);
-		var isAsync = js_Boot.__instanceof(command,hex_control_async_IAsyncCommand);
-		if(isAsync) command.preExecute();
-		Reflect.callMethod(command,Reflect.field(command,command.executeMethodName),[]);
-		return new hex_control_controller_ControllerResponder();
+		var action = this.injector.getOrCreateNewInstance(example_module_gallery_controller_LoadPhotosOrder);
+		action.setOwner(this.injector.getInstance(hex_module_IModule));
+		Reflect.callMethod(action,Reflect.field(action,action.executeMethodName),[]);
+		return new hex_control_controller_ControllerResponder(action);
 	}
 	,__class__: example_module_gallery_controller_GalleryController
 });
-var hex_control_command_ICommand = function() { };
-$hxClasses["hex.control.command.ICommand"] = hex_control_command_ICommand;
-hex_control_command_ICommand.__name__ = ["hex","control","command","ICommand"];
-hex_control_command_ICommand.prototype = {
-	executeMethodName: null
-	,getResult: null
-	,getReturnedExecutionPayload: null
-	,getLogger: null
-	,getOwner: null
-	,setOwner: null
-	,__class__: hex_control_command_ICommand
+var hex_control_controller_ICompletable = function() { };
+$hxClasses["hex.control.controller.ICompletable"] = hex_control_controller_ICompletable;
+hex_control_controller_ICompletable.__name__ = ["hex","control","controller","ICompletable"];
+hex_control_controller_ICompletable.prototype = {
+	onComplete: null
+	,onFail: null
+	,__class__: hex_control_controller_ICompletable
 };
-var hex_control_command_BasicCommand = function() {
+var hex_control_order_Order = function() {
 	this.executeMethodName = "execute";
+	this._completeResponder = [];
+	this._failResponder = [];
+	this._hasCompleted = false;
 };
-$hxClasses["hex.control.command.BasicCommand"] = hex_control_command_BasicCommand;
-hex_control_command_BasicCommand.__name__ = ["hex","control","command","BasicCommand"];
-hex_control_command_BasicCommand.__interfaces__ = [hex_control_command_ICommand];
-hex_control_command_BasicCommand.prototype = {
+$hxClasses["hex.control.order.Order"] = hex_control_order_Order;
+hex_control_order_Order.__name__ = ["hex","control","order","Order"];
+hex_control_order_Order.__interfaces__ = [hex_control_controller_ICompletable];
+hex_control_order_Order.prototype = {
 	_owner: null
+	,_result: null
+	,_errorMessage: null
+	,_hasCompleted: null
+	,_hasFailed: null
+	,_completeResponder: null
+	,_failResponder: null
 	,executeMethodName: null
-	,getResult: function() {
-		return null;
+	,onComplete: function(callback) {
+		if(!this._hasCompleted) this._completeResponder.push(callback); else callback(this._result);
+		return this;
 	}
-	,getReturnedExecutionPayload: function() {
-		return null;
+	,onFail: function(callback) {
+		if(this._hasFailed) this._failResponder.push(callback); else callback(this._errorMessage);
+		return this;
+	}
+	,_complete: function(result) {
+		if(!this._hasCompleted && !this._hasFailed) {
+			this._result = result;
+			var _g = 0;
+			var _g1 = this._completeResponder;
+			while(_g < _g1.length) {
+				var responder = _g1[_g];
+				++_g;
+				responder(result);
+			}
+		} else throw new js__$Boot_HaxeError(new hex_error_IllegalStateException("this instance has already completed",{ fileName : "Order.hx", lineNumber : 73, className : "hex.control.order.Order", methodName : "_complete"}));
+	}
+	,_fail: function(errorMessage) {
+		if(!this._hasCompleted && !this._hasFailed) {
+			this._errorMessage = errorMessage;
+			var _g = 0;
+			var _g1 = this._failResponder;
+			while(_g < _g1.length) {
+				var responder = _g1[_g];
+				++_g;
+				responder(errorMessage);
+			}
+		} else throw new js__$Boot_HaxeError(new hex_error_IllegalStateException("this instance has already failed",{ fileName : "Order.hx", lineNumber : 89, className : "hex.control.order.Order", methodName : "_fail"}));
 	}
 	,getLogger: function() {
 		return this._owner.getLogger();
@@ -1118,46 +1094,20 @@ hex_control_command_BasicCommand.prototype = {
 	,setOwner: function(owner) {
 		this._owner = owner;
 	}
-	,__class__: hex_control_command_BasicCommand
+	,__class__: hex_control_order_Order
 };
-var hex_service_stateless_http_IHTTPServiceListener = function() { };
-$hxClasses["hex.service.stateless.http.IHTTPServiceListener"] = hex_service_stateless_http_IHTTPServiceListener;
-hex_service_stateless_http_IHTTPServiceListener.__name__ = ["hex","service","stateless","http","IHTTPServiceListener"];
-hex_service_stateless_http_IHTTPServiceListener.prototype = {
-	onServiceComplete: null
-	,onServiceFail: null
-	,onServiceCancel: null
-	,onServiceTimeout: null
-	,__class__: hex_service_stateless_http_IHTTPServiceListener
+var example_module_gallery_controller_LoadPhotosOrder = function() {
+	hex_control_order_Order.call(this);
 };
-var example_module_gallery_controller_LoadPhotosCommand = function() {
-	hex_control_command_BasicCommand.call(this);
-};
-$hxClasses["example.module.gallery.controller.LoadPhotosCommand"] = example_module_gallery_controller_LoadPhotosCommand;
-example_module_gallery_controller_LoadPhotosCommand.__name__ = ["example","module","gallery","controller","LoadPhotosCommand"];
-example_module_gallery_controller_LoadPhotosCommand.__interfaces__ = [hex_service_stateless_http_IHTTPServiceListener];
-example_module_gallery_controller_LoadPhotosCommand.__super__ = hex_control_command_BasicCommand;
-example_module_gallery_controller_LoadPhotosCommand.prototype = $extend(hex_control_command_BasicCommand.prototype,{
+$hxClasses["example.module.gallery.controller.LoadPhotosOrder"] = example_module_gallery_controller_LoadPhotosOrder;
+example_module_gallery_controller_LoadPhotosOrder.__name__ = ["example","module","gallery","controller","LoadPhotosOrder"];
+example_module_gallery_controller_LoadPhotosOrder.__super__ = hex_control_order_Order;
+example_module_gallery_controller_LoadPhotosOrder.prototype = $extend(hex_control_order_Order.prototype,{
 	photosService: null
-	,galleryModel: null
-	,execute: function(request) {
-		hex_log_Logger.DEBUG("LoadPhotosCommand execute",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 33, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "execute"});
-		this.photosService.addHTTPServiceListener(this);
-		this.photosService.call();
+	,execute: function() {
+		this.photosService.getPhotos().onComplete($bind(this,this._complete)).onFail($bind(this,this._fail));
 	}
-	,onServiceComplete: function(service) {
-		this.galleryModel.setPhotos(this.photosService.getPhotos());
-	}
-	,onServiceFail: function(service) {
-		hex_log_Logger.DEBUG("onServiceFail",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 45, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "onServiceFail"});
-	}
-	,onServiceCancel: function(service) {
-		hex_log_Logger.DEBUG("onServiceCancel",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 49, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "onServiceCancel"});
-	}
-	,onServiceTimeout: function(service) {
-		hex_log_Logger.DEBUG("onServiceTimeout",null,{ fileName : "LoadPhotosCommand.hx", lineNumber : 53, className : "example.module.gallery.controller.LoadPhotosCommand", methodName : "onServiceTimeout"});
-	}
-	,__class__: example_module_gallery_controller_LoadPhotosCommand
+	,__class__: example_module_gallery_controller_LoadPhotosOrder
 });
 var hex_model_IModelRO = function() { };
 $hxClasses["hex.model.IModelRO"] = hex_model_IModelRO;
@@ -1268,92 +1218,9 @@ example_module_gallery_model_GalleryModelDispatcher.prototype = $extend(hex_mode
 	}
 	,__class__: example_module_gallery_model_GalleryModelDispatcher
 });
-var hex_control_ICallable = function() { };
-$hxClasses["hex.control.ICallable"] = hex_control_ICallable;
-hex_control_ICallable.__name__ = ["hex","control","ICallable"];
-hex_control_ICallable.prototype = {
-	call: null
-	,__class__: hex_control_ICallable
-};
-var hex_control_ICancellable = function() { };
-$hxClasses["hex.control.ICancellable"] = hex_control_ICancellable;
-hex_control_ICancellable.__name__ = ["hex","control","ICancellable"];
-hex_control_ICancellable.__interfaces__ = [hex_control_ICallable];
-hex_control_ICancellable.prototype = {
-	cancel: null
-	,__class__: hex_control_ICancellable
-};
-var hex_service_IService = function() { };
-$hxClasses["hex.service.IService"] = hex_service_IService;
-hex_service_IService.__name__ = ["hex","service","IService"];
-hex_service_IService.prototype = {
-	createConfiguration: null
-	,addHandler: null
-	,removeHandler: null
-	,getConfiguration: null
-	,setConfiguration: null
-	,removeAllListeners: null
-	,__class__: hex_service_IService
-};
-var hex_service_stateless_IStatelessService = function() { };
-$hxClasses["hex.service.stateless.IStatelessService"] = hex_service_stateless_IStatelessService;
-hex_service_stateless_IStatelessService.__name__ = ["hex","service","stateless","IStatelessService"];
-hex_service_stateless_IStatelessService.__interfaces__ = [hex_control_ICancellable,hex_service_IService];
-hex_service_stateless_IStatelessService.prototype = {
-	get_wasUsed: null
-	,get_isRunning: null
-	,get_hasCompleted: null
-	,get_hasFailed: null
-	,get_isCancelled: null
-	,getResult: null
-	,getRawResult: null
-	,setParser: null
-	,handleComplete: null
-	,handleFail: null
-	,handleCancel: null
-	,release: null
-	,removeAllListeners: null
-	,wasUsed: null
-	,isRunning: null
-	,hasCompleted: null
-	,hasFailed: null
-	,isCancelled: null
-	,__class__: hex_service_stateless_IStatelessService
-	,__properties__: {get_isCancelled:"get_isCancelled",get_hasFailed:"get_hasFailed",get_hasCompleted:"get_hasCompleted",get_isRunning:"get_isRunning",get_wasUsed:"get_wasUsed"}
-};
-var hex_service_stateless_IAsyncStatelessService = function() { };
-$hxClasses["hex.service.stateless.IAsyncStatelessService"] = hex_service_stateless_IAsyncStatelessService;
-hex_service_stateless_IAsyncStatelessService.__name__ = ["hex","service","stateless","IAsyncStatelessService"];
-hex_service_stateless_IAsyncStatelessService.__interfaces__ = [hex_service_stateless_IStatelessService];
-hex_service_stateless_IAsyncStatelessService.prototype = {
-	get_timeoutDuration: null
-	,set_timeoutDuration: null
-	,__class__: hex_service_stateless_IAsyncStatelessService
-	,__properties__: {set_timeoutDuration:"set_timeoutDuration",get_timeoutDuration:"get_timeoutDuration"}
-};
-var hex_service_stateless_http_IHTTPService = function() { };
-$hxClasses["hex.service.stateless.http.IHTTPService"] = hex_service_stateless_http_IHTTPService;
-hex_service_stateless_http_IHTTPService.__name__ = ["hex","service","stateless","http","IHTTPService"];
-hex_service_stateless_http_IHTTPService.__interfaces__ = [hex_service_stateless_IAsyncStatelessService];
-hex_service_stateless_http_IHTTPService.prototype = {
-	get_url: null
-	,get_method: null
-	,get_dataFormat: null
-	,get_timeout: null
-	,url: null
-	,method: null
-	,dataFormat: null
-	,timeout: null
-	,addHeader: null
-	,addHTTPServiceListener: null
-	,removeHTTPServiceListener: null
-	,__class__: hex_service_stateless_http_IHTTPService
-	,__properties__: {get_timeout:"get_timeout",get_dataFormat:"get_dataFormat",get_method:"get_method",get_url:"get_url"}
-};
 var example_module_gallery_service_IGetPhotosService = function() { };
 $hxClasses["example.module.gallery.service.IGetPhotosService"] = example_module_gallery_service_IGetPhotosService;
 example_module_gallery_service_IGetPhotosService.__name__ = ["example","module","gallery","service","IGetPhotosService"];
-example_module_gallery_service_IGetPhotosService.__interfaces__ = [hex_service_stateless_http_IHTTPService];
 example_module_gallery_service_IGetPhotosService.prototype = {
 	getPhotos: null
 	,__class__: example_module_gallery_service_IGetPhotosService
@@ -1368,6 +1235,7 @@ hex_view_viewhelper_IViewHelper.prototype = {
 	,set_visible: null
 	,getOwner: null
 	,setOwner: null
+	,getLogger: null
 	,show: null
 	,hide: null
 	,release: null
@@ -1420,6 +1288,9 @@ hex_view_viewhelper_ViewHelper.prototype = {
 	,getOwner: function() {
 		return this._owner;
 	}
+	,getLogger: function() {
+		return this._owner.getLogger();
+	}
 	,setOwner: function(owner) {
 		this._owner = owner;
 	}
@@ -1471,10 +1342,10 @@ example_module_gallery_view_GalleryViewHelper.prototype = $extend(hex_view_viewh
 		hex_view_viewhelper_ViewHelper.prototype._initialize.call(this);
 		this._layoutView = this._view;
 		this._model.addListener(this);
-		console.log(this._controller);
-		this._controller.loadPhotos();
+		this._controller.loadPhotos().onComplete($bind(this,this.onPhotosLoaded));
 	}
 	,onPhotosLoaded: function(photos) {
+		this.getLogger().info("onPhotosLoaded",{ fileName : "GalleryViewHelper.hx", lineNumber : 40, className : "example.module.gallery.view.GalleryViewHelper", methodName : "onPhotosLoaded"});
 		this._layoutView.setPhotos(photos);
 	}
 	,__class__: example_module_gallery_view_GalleryViewHelper
@@ -1538,162 +1409,40 @@ example_module_gallery_vo_PhotoVO.prototype = {
 	,name: null
 	,__class__: example_module_gallery_vo_PhotoVO
 };
-var hex_service_AbstractService = function() {
+var hex_data_IParser = function() { };
+$hxClasses["hex.data.IParser"] = hex_data_IParser;
+hex_data_IParser.__name__ = ["hex","data","IParser"];
+hex_data_IParser.prototype = {
+	parse: null
+	,__class__: hex_data_IParser
 };
-$hxClasses["hex.service.AbstractService"] = hex_service_AbstractService;
-hex_service_AbstractService.__name__ = ["hex","service","AbstractService"];
-hex_service_AbstractService.__interfaces__ = [hex_service_IService];
-hex_service_AbstractService.prototype = {
-	_configuration: null
-	,getConfiguration: function() {
-		return this._configuration;
-	}
-	,createConfiguration: function() {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".createConfiguration must be overridden",{ fileName : "AbstractService.hx", lineNumber : 30, className : "hex.service.AbstractService", methodName : "createConfiguration"}));
-	}
-	,setConfiguration: function(configuration) {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".setConfiguration must be overridden",{ fileName : "AbstractService.hx", lineNumber : 35, className : "hex.service.AbstractService", methodName : "setConfiguration"}));
-	}
-	,addHandler: function(messageType,scope,callback) {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".addHandler must be overridden",{ fileName : "AbstractService.hx", lineNumber : 40, className : "hex.service.AbstractService", methodName : "addHandler"}));
-	}
-	,removeHandler: function(messageType,scope,callback) {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".removeHandler must be overridden",{ fileName : "AbstractService.hx", lineNumber : 45, className : "hex.service.AbstractService", methodName : "removeHandler"}));
-	}
-	,removeAllListeners: function() {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".removeAllListeners must be overridden",{ fileName : "AbstractService.hx", lineNumber : 50, className : "hex.service.AbstractService", methodName : "removeAllListeners"}));
-	}
-	,release: function() {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".release must be overridden",{ fileName : "AbstractService.hx", lineNumber : 55, className : "hex.service.AbstractService", methodName : "release"}));
-	}
-	,__class__: hex_service_AbstractService
+var example_service_flickr_FlickrParser = function() {
 };
-var hex_service_stateless_StatelessService = function() {
-	this._status = "WAS_NEVER_USED";
-	hex_service_AbstractService.call(this);
-	this._ed = new hex_event_Dispatcher();
-};
-$hxClasses["hex.service.stateless.StatelessService"] = hex_service_stateless_StatelessService;
-hex_service_stateless_StatelessService.__name__ = ["hex","service","stateless","StatelessService"];
-hex_service_stateless_StatelessService.__interfaces__ = [hex_service_stateless_IStatelessService];
-hex_service_stateless_StatelessService.__super__ = hex_service_AbstractService;
-hex_service_stateless_StatelessService.prototype = $extend(hex_service_AbstractService.prototype,{
-	_ed: null
-	,_result: null
-	,_rawResult: null
-	,_parser: null
-	,_status: null
-	,setConfiguration: function(configuration) {
-		if(this.get_wasUsed()) throw new js__$Boot_HaxeError(new hex_error_IllegalStateException("'setConfiguration' can't be called after service call @" + hex_log_Stringifier.stringify(this),{ fileName : "StatelessService.hx", lineNumber : 45, className : "hex.service.stateless.StatelessService", methodName : "setConfiguration"})); else this._configuration = configuration;
-	}
-	,addHandler: function(messageType,scope,callback) {
-		this._ed.addHandler(messageType,scope,callback);
-	}
-	,removeHandler: function(messageType,scope,callback) {
-		this._ed.removeHandler(messageType,scope,callback);
-	}
-	,release: function() {
-		if(!this.get_wasUsed()) this.cancel(); else this._release();
-	}
-	,call: function() {
-		this.get_wasUsed() && this._throwExecutionIllegalStateError("call");
-		this._status = "IS_RUNNING";
-	}
-	,cancel: function() {
-		this.handleCancel();
-	}
-	,wasUsed: null
-	,get_wasUsed: function() {
-		return this._status != "WAS_NEVER_USED";
-	}
-	,isRunning: null
-	,get_isRunning: function() {
-		return this._status == "IS_RUNNING";
-	}
-	,hasCompleted: null
-	,get_hasCompleted: function() {
-		return this._status == "IS_COMPLETED";
-	}
-	,hasFailed: null
-	,get_hasFailed: function() {
-		return this._status == "IS_FAILED";
-	}
-	,isCancelled: null
-	,get_isCancelled: function() {
-		return this._status == "IS_CANCELLED";
-	}
-	,_throwExecutionIllegalStateError: function(methodName) {
-		var msg = "";
-		if(this.get_isRunning()) msg = "'" + methodName + "' call failed. This service is running and can't be called twice "; else if(this.get_isCancelled()) msg = "'" + methodName + "' call failed. This service is cancelled and can't be called twice "; else if(this.get_hasCompleted()) msg = "'" + methodName + "' call failed. This service is completed and can't be called twice "; else if(this.get_hasFailed()) msg = "'" + methodName + "' call failed. This service has failed and can't be called twice ";
-		this._release();
-		return this._throwIllegalStateError(msg + "@" + hex_log_Stringifier.stringify(this));
-	}
-	,_throwIllegalStateError: function(msg) {
-		throw new js__$Boot_HaxeError(new hex_error_IllegalStateException(msg,{ fileName : "StatelessService.hx", lineNumber : 148, className : "hex.service.stateless.StatelessService", methodName : "_throwIllegalStateError"}));
-	}
-	,_release: function() {
-		this.removeAllListeners();
-		this._result = null;
-		this._parser = null;
-	}
-	,_onResultHandler: function(result) {
-		if(this._status == "IS_RUNNING") {
-			this._setResult(result);
-			this.handleComplete();
+$hxClasses["example.service.flickr.FlickrParser"] = example_service_flickr_FlickrParser;
+example_service_flickr_FlickrParser.__name__ = ["example","service","flickr","FlickrParser"];
+example_service_flickr_FlickrParser.__interfaces__ = [hex_data_IParser];
+example_service_flickr_FlickrParser.prototype = {
+	parse: function(serializedContent,target) {
+		console.log("parse");
+		var jsonString = serializedContent;
+		jsonString = HxOverrides.substr(jsonString,14,null);
+		jsonString = HxOverrides.substr(jsonString,0,-1);
+		var json = JSON.parse(jsonString);
+		console.log(jsonString);
+		var photosList = [];
+		var _g = 0;
+		var _g1 = Reflect.fields(json.photos.photo);
+		while(_g < _g1.length) {
+			var n = _g1[_g];
+			++_g;
+			var photo = Reflect.field(json.photos.photo,n);
+			var url = "https://farm" + photo.farm + ".staticflickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_b.jpg";
+			photosList.push(new example_module_gallery_vo_PhotoVO(url,photo.title));
 		}
+		return photosList;
 	}
-	,_onErrorHandler: function(result) {
-		this._rawResult = null;
-		this._result = null;
-		this.handleFail();
-	}
-	,_onException: function(e) {
-		if(this._ed.hasHandler(hex_service_stateless_StatelessServiceMessage.FAIL)) this._onErrorHandler(null); else throw new js__$Boot_HaxeError(e);
-	}
-	,getResult: function() {
-		return this._result;
-	}
-	,_setResult: function(response) {
-		this._rawResult = response;
-		if(this._parser != null) this._result = this._parser.parse(this._rawResult); else this._result = this._rawResult;
-		return this._result;
-	}
-	,getRawResult: function() {
-		return this._rawResult;
-	}
-	,setParser: function(parser) {
-		this._parser = parser;
-	}
-	,handleComplete: function() {
-		this.get_wasUsed() && this._status != "IS_RUNNING" && this._throwIllegalStateError("handleComplete failed");
-		this._status = "IS_COMPLETED";
-		this._ed.dispatch(hex_service_stateless_StatelessServiceMessage.COMPLETE,[this]);
-		this._release();
-	}
-	,handleFail: function() {
-		this.get_wasUsed() && this._status != "IS_RUNNING" && this._throwIllegalStateError("handleFail failed");
-		this._status = "IS_FAILED";
-		this._ed.dispatch(hex_service_stateless_StatelessServiceMessage.FAIL,[this]);
-		this._release();
-	}
-	,handleCancel: function() {
-		this.get_wasUsed() && this._status != "IS_RUNNING" && this._throwIllegalStateError("handleCancel failed");
-		this._status = "IS_CANCELLED";
-		this._ed.dispatch(hex_service_stateless_StatelessServiceMessage.CANCEL,[this]);
-		this._release();
-	}
-	,removeAllListeners: function() {
-		this._ed.removeAllListeners();
-	}
-	,_getRemoteArguments: function() {
-		throw new js__$Boot_HaxeError(new hex_error_UnsupportedOperationException(Std.string(this) + ".getRemoteArguments is unsupported.",{ fileName : "StatelessService.hx", lineNumber : 245, className : "hex.service.stateless.StatelessService", methodName : "_getRemoteArguments"}));
-	}
-	,_reset: function() {
-		this._status = "WAS_NEVER_USED";
-	}
-	,__class__: hex_service_stateless_StatelessService
-	,__properties__: {get_isCancelled:"get_isCancelled",get_hasFailed:"get_hasFailed",get_hasCompleted:"get_hasCompleted",get_isRunning:"get_isRunning",get_wasUsed:"get_wasUsed"}
-});
+	,__class__: example_service_flickr_FlickrParser
+};
 var hex_collection_IHashMap = function() { };
 $hxClasses["hex.collection.IHashMap"] = hex_collection_IHashMap;
 hex_collection_IHashMap.__name__ = ["hex","collection","IHashMap"];
@@ -1796,108 +1545,38 @@ hex_collection_HashMap.prototype = {
 	}
 	,__class__: hex_collection_HashMap
 };
-var hex_service_stateless_AsyncStatelessService = function() {
-	hex_service_stateless_StatelessService.call(this);
-	this._timeoutDuration = 100;
+var hex_order_HttpOrder = function(url) {
+	hex_control_order_Order.call(this);
+	this._configuration = new hex_service_stateless_http_HTTPServiceConfiguration(url);
 };
-$hxClasses["hex.service.stateless.AsyncStatelessService"] = hex_service_stateless_AsyncStatelessService;
-hex_service_stateless_AsyncStatelessService.__name__ = ["hex","service","stateless","AsyncStatelessService"];
-hex_service_stateless_AsyncStatelessService.__interfaces__ = [hex_service_stateless_IAsyncStatelessService];
-hex_service_stateless_AsyncStatelessService._isServiceDetained = function(service) {
-	return hex_service_stateless_AsyncStatelessService._POOL.containsKey(service);
+$hxClasses["hex.order.HttpOrder"] = hex_order_HttpOrder;
+hex_order_HttpOrder.__name__ = ["hex","order","HttpOrder"];
+hex_order_HttpOrder._isOrderDetained = function(order) {
+	return hex_order_HttpOrder._POOL.containsKey(order);
 };
-hex_service_stateless_AsyncStatelessService._detainService = function(service) {
-	hex_service_stateless_AsyncStatelessService._POOL.put(service,true);
+hex_order_HttpOrder._detainOrder = function(order) {
+	hex_order_HttpOrder._POOL.put(order,true);
 };
-hex_service_stateless_AsyncStatelessService._releaseService = function(service) {
-	if(hex_service_stateless_AsyncStatelessService._POOL.containsKey(service)) hex_service_stateless_AsyncStatelessService._POOL.remove(service);
+hex_order_HttpOrder._releaseOrder = function(order) {
+	if(hex_order_HttpOrder._POOL.containsKey(order)) hex_order_HttpOrder._POOL.remove(order);
 };
-hex_service_stateless_AsyncStatelessService.__super__ = hex_service_stateless_StatelessService;
-hex_service_stateless_AsyncStatelessService.prototype = $extend(hex_service_stateless_StatelessService.prototype,{
-	_timer: null
-	,_timeoutDuration: null
-	,call: function() {
-		hex_service_stateless_StatelessService.prototype.call.call(this);
-		this._startTimer();
-		hex_service_stateless_AsyncStatelessService._detainService(this);
-	}
-	,setConfiguration: function(configuration) {
-		hex_service_stateless_StatelessService.prototype.setConfiguration.call(this,configuration);
-		this.set_timeoutDuration(this._configuration.serviceTimeout);
-	}
-	,hasTimeout: null
-	,get_hasTimeout: function() {
-		return this._status == "HAS_TIMEOUT";
-	}
-	,timeoutDuration: null
-	,get_timeoutDuration: function() {
-		return this._timeoutDuration;
-	}
-	,set_timeoutDuration: function(duration) {
-		this.get_wasUsed() && this._throwIllegalStateError("timeoutDuration value can't be changed after service call");
-		this._timeoutDuration = duration;
-		if(this._configuration != null) this._configuration.serviceTimeout = this._timeoutDuration;
-		return this._timeoutDuration;
-	}
-	,_reset: function() {
-		if(this._timer != null) this._timer.stop();
-		hex_service_stateless_StatelessService.prototype._reset.call(this);
-	}
-	,_onTimeoutHandler: function() {
-		if(this._timer != null) this._timer.stop();
-		this._ed.dispatch(hex_service_stateless_AsyncStatelessServiceMessage.TIMEOUT,[this]);
-		this._status = "HAS_TIMEOUT";
-	}
-	,_startTimer: function() {
-		if(_$UInt_UInt_$Impl_$.gt(this.get_timeoutDuration(),0)) {
-			this._timer = new haxe_Timer(this._timeoutDuration);
-			this._timer.run = $bind(this,this._onTimeoutHandler);
-		} else this._onTimeoutHandler();
-	}
-	,_release: function() {
-		if(this._timer != null) this._timer.stop();
-		hex_service_stateless_StatelessService.prototype._release.call(this);
-		hex_service_stateless_AsyncStatelessService._releaseService(this);
-	}
-	,__class__: hex_service_stateless_AsyncStatelessService
-	,__properties__: $extend(hex_service_stateless_StatelessService.prototype.__properties__,{set_timeoutDuration:"set_timeoutDuration",get_timeoutDuration:"get_timeoutDuration",get_hasTimeout:"get_hasTimeout"})
-});
-var hex_core_IAnnotationParsable = function() { };
-$hxClasses["hex.core.IAnnotationParsable"] = hex_core_IAnnotationParsable;
-hex_core_IAnnotationParsable.__name__ = ["hex","core","IAnnotationParsable"];
-var hex_service_IURLConfigurable = function() { };
-$hxClasses["hex.service.IURLConfigurable"] = hex_service_IURLConfigurable;
-hex_service_IURLConfigurable.__name__ = ["hex","service","IURLConfigurable"];
-hex_service_IURLConfigurable.prototype = {
-	setURL: null
-	,__class__: hex_service_IURLConfigurable
-};
-var hex_service_stateless_http_HTTPService = function() {
-	hex_service_stateless_AsyncStatelessService.call(this);
-};
-$hxClasses["hex.service.stateless.http.HTTPService"] = hex_service_stateless_http_HTTPService;
-hex_service_stateless_http_HTTPService.__name__ = ["hex","service","stateless","http","HTTPService"];
-hex_service_stateless_http_HTTPService.__interfaces__ = [hex_core_IAnnotationParsable,hex_service_IURLConfigurable,hex_service_stateless_http_IHTTPService];
-hex_service_stateless_http_HTTPService.__super__ = hex_service_stateless_AsyncStatelessService;
-hex_service_stateless_http_HTTPService.prototype = $extend(hex_service_stateless_AsyncStatelessService.prototype,{
-	_request: null
+hex_order_HttpOrder.__super__ = hex_control_order_Order;
+hex_order_HttpOrder.prototype = $extend(hex_control_order_Order.prototype,{
+	_configuration: null
+	,_request: null
 	,_excludedParameters: null
 	,_timestamp: null
-	,call: function() {
+	,_parser: null
+	,execute: function() {
 		this._timestamp = new Date().getTime();
-		if(this._configuration == null || this._configuration.serviceUrl == null) {
-			this._status = "IS_RUNNING";
-			this._onException(new hex_error_NullPointerException("_createRequest call failed. ServiceConfiguration.serviceUrl shouldn't be null @" + hex_log_Stringifier.stringify(this),{ fileName : "HTTPService.hx", lineNumber : 32, className : "hex.service.stateless.http.HTTPService", methodName : "call"}));
-			return;
-		}
+		if(this._configuration == null || this._configuration.serviceUrl == null) throw new js__$Boot_HaxeError(new hex_error_NullPointerException("_createRequest call failed. ServiceConfiguration.serviceUrl shouldn't be null @" + hex_log_Stringifier.stringify(this),{ fileName : "HttpOrder.hx", lineNumber : 38, className : "hex.order.HttpOrder", methodName : "execute"}));
 		this._createRequest();
-		hex_service_stateless_AsyncStatelessService.prototype.call.call(this);
 		this._request.request(this._configuration.requestMethod == "POST");
+		return this;
 	}
 	,_createRequest: function() {
 		this._request = new haxe_Http(this._configuration.serviceUrl);
 		this._configuration.parameterFactory.setParameters(this._request,this._configuration.parameters,this._excludedParameters);
-		this.set_timeoutDuration(this._configuration.serviceTimeout);
 		this._request.async = true;
 		this._request.onData = $bind(this,this._onData);
 		this._request.onError = $bind(this,this._onError);
@@ -1911,9 +1590,6 @@ hex_service_stateless_http_HTTPService.prototype = $extend(hex_service_stateless
 				this._request.addHeader(header.name,header.value);
 			}
 		}
-	}
-	,setExcludedParameters: function(excludedParameters) {
-		this._excludedParameters = excludedParameters;
 	}
 	,url: null
 	,get_url: function() {
@@ -1931,12 +1607,6 @@ hex_service_stateless_http_HTTPService.prototype = $extend(hex_service_stateless
 	,get_timeout: function() {
 		return this._configuration.serviceTimeout;
 	}
-	,release: function() {
-		if(this._request != null) {
-			if(this._status == "WAS_NEVER_USED") this._request.cancel();
-		}
-		hex_service_stateless_AsyncStatelessService.prototype.release.call(this);
-	}
 	,setParameters: function(parameters) {
 		this._configuration.parameters = parameters;
 	}
@@ -1946,89 +1616,35 @@ hex_service_stateless_http_HTTPService.prototype = $extend(hex_service_stateless
 	,addHeader: function(header) {
 		this._configuration.requestHeaders.push(header);
 	}
-	,_getRemoteArguments: function() {
-		this._createRequest();
-		return [this._request];
+	,setParser: function(parser) {
+		this._parser = parser;
 	}
 	,_onData: function(result) {
-		this._onResultHandler(result);
+		if(this._parser != null) this._complete(this._parser.parse(result)); else this._complete(result);
 	}
-	,_onError: function(msg) {
-		this._onException(new hex_error_Exception(msg,{ fileName : "HTTPService.hx", lineNumber : 139, className : "hex.service.stateless.http.HTTPService", methodName : "_onError"}));
+	,_onError: function(message) {
+		this._fail(message);
 	}
 	,_onStatus: function(status) {
+		console.log(status);
 	}
-	,setURL: function(url) {
-		this._configuration.serviceUrl = url;
-	}
-	,addHTTPServiceListener: function(listener) {
-		this._ed.addHandler(hex_service_stateless_StatelessServiceMessage.COMPLETE,listener,$bind(listener,listener.onServiceComplete));
-		this._ed.addHandler(hex_service_stateless_StatelessServiceMessage.FAIL,listener,$bind(listener,listener.onServiceFail));
-		this._ed.addHandler(hex_service_stateless_StatelessServiceMessage.CANCEL,listener,$bind(listener,listener.onServiceCancel));
-		this._ed.addHandler(hex_service_stateless_AsyncStatelessServiceMessage.TIMEOUT,listener,$bind(listener,listener.onServiceTimeout));
-	}
-	,removeHTTPServiceListener: function(listener) {
-		this._ed.removeHandler(hex_service_stateless_StatelessServiceMessage.COMPLETE,listener,$bind(listener,listener.onServiceComplete));
-		this._ed.removeHandler(hex_service_stateless_StatelessServiceMessage.FAIL,listener,$bind(listener,listener.onServiceFail));
-		this._ed.removeHandler(hex_service_stateless_StatelessServiceMessage.CANCEL,listener,$bind(listener,listener.onServiceCancel));
-		this._ed.removeHandler(hex_service_stateless_AsyncStatelessServiceMessage.TIMEOUT,listener,$bind(listener,listener.onServiceTimeout));
-	}
-	,__class__: hex_service_stateless_http_HTTPService
-	,__properties__: $extend(hex_service_stateless_AsyncStatelessService.prototype.__properties__,{get_timeout:"get_timeout",get_dataFormat:"get_dataFormat",get_method:"get_method",get_url:"get_url"})
+	,__class__: hex_order_HttpOrder
+	,__properties__: {get_timeout:"get_timeout",get_dataFormat:"get_dataFormat",get_method:"get_method",get_url:"get_url"}
 });
-var example_service_flickr_FlickrGetPhotos = function() {
-	hex_service_stateless_http_HTTPService.call(this);
-	hex_log_Logger.DEBUG("FlickrGetPhotos constructor",null,{ fileName : "FlickrGetPhotos.hx", lineNumber : 23, className : "example.service.flickr.FlickrGetPhotos", methodName : "new"});
+var example_service_flickr_FlickrService = function() {
+	hex_order_HttpOrder.call(this,"https://api.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=bdeda660a5fcdf79170c711c07156f12&user_id=134406781%40N06&format=json");
+	this.setParser(new example_service_flickr_FlickrParser());
 };
-$hxClasses["example.service.flickr.FlickrGetPhotos"] = example_service_flickr_FlickrGetPhotos;
-example_service_flickr_FlickrGetPhotos.__name__ = ["example","service","flickr","FlickrGetPhotos"];
-example_service_flickr_FlickrGetPhotos.__interfaces__ = [example_module_gallery_service_IGetPhotosService];
-example_service_flickr_FlickrGetPhotos.__super__ = hex_service_stateless_http_HTTPService;
-example_service_flickr_FlickrGetPhotos.prototype = $extend(hex_service_stateless_http_HTTPService.prototype,{
-	createConfiguration: function() {
-		hex_log_Logger.DEBUG("FlickrGetPhotos createConfiguration",null,{ fileName : "FlickrGetPhotos.hx", lineNumber : 32, className : "example.service.flickr.FlickrGetPhotos", methodName : "createConfiguration"});
-		this.setConfiguration(new hex_service_stateless_http_HTTPServiceConfiguration("https://api.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=bdeda660a5fcdf79170c711c07156f12&user_id=134406781%40N06&format=json"));
-		this.setParser(new example_service_flickr_FlickrPhotosParser());
+$hxClasses["example.service.flickr.FlickrService"] = example_service_flickr_FlickrService;
+example_service_flickr_FlickrService.__name__ = ["example","service","flickr","FlickrService"];
+example_service_flickr_FlickrService.__interfaces__ = [example_module_gallery_service_IGetPhotosService];
+example_service_flickr_FlickrService.__super__ = hex_order_HttpOrder;
+example_service_flickr_FlickrService.prototype = $extend(hex_order_HttpOrder.prototype,{
+	getPhotos: function() {
+		return this.execute();
 	}
-	,getPhotos: function() {
-		return this._result;
-	}
-	,__class__: example_service_flickr_FlickrGetPhotos
+	,__class__: example_service_flickr_FlickrService
 });
-var hex_data_IParser = function() { };
-$hxClasses["hex.data.IParser"] = hex_data_IParser;
-hex_data_IParser.__name__ = ["hex","data","IParser"];
-hex_data_IParser.prototype = {
-	parse: null
-	,__class__: hex_data_IParser
-};
-var example_service_flickr_FlickrPhotosParser = function() {
-};
-$hxClasses["example.service.flickr.FlickrPhotosParser"] = example_service_flickr_FlickrPhotosParser;
-example_service_flickr_FlickrPhotosParser.__name__ = ["example","service","flickr","FlickrPhotosParser"];
-example_service_flickr_FlickrPhotosParser.__interfaces__ = [hex_data_IParser];
-example_service_flickr_FlickrPhotosParser.prototype = {
-	parse: function(serializedContent,target) {
-		console.log("parse");
-		var jsonString = serializedContent;
-		jsonString = HxOverrides.substr(jsonString,14,null);
-		jsonString = HxOverrides.substr(jsonString,0,-1);
-		var json = JSON.parse(jsonString);
-		console.log(jsonString);
-		var photosList = [];
-		var _g = 0;
-		var _g1 = Reflect.fields(json.photos.photo);
-		while(_g < _g1.length) {
-			var n = _g1[_g];
-			++_g;
-			var photo = Reflect.field(json.photos.photo,n);
-			var url = "https://farm" + photo.farm + ".staticflickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_b.jpg";
-			photosList.push(new example_module_gallery_vo_PhotoVO(url,photo.title));
-		}
-		return photosList;
-	}
-	,__class__: example_service_flickr_FlickrPhotosParser
-};
 var haxe_Http = function(url) {
 	this.url = url;
 	this.headers = new List();
@@ -2053,11 +1669,6 @@ haxe_Http.prototype = {
 		return this;
 	}
 	,req: null
-	,cancel: function() {
-		if(this.req == null) return;
-		this.req.abort();
-		this.req = null;
-	}
 	,request: function(post) {
 		var me = this;
 		me.responseData = null;
@@ -2156,25 +1767,6 @@ haxe_Http.prototype = {
 	,onStatus: function(status) {
 	}
 	,__class__: haxe_Http
-};
-var haxe_Timer = function(time_ms) {
-	var me = this;
-	this.id = setInterval(function() {
-		me.run();
-	},time_ms);
-};
-$hxClasses["haxe.Timer"] = haxe_Timer;
-haxe_Timer.__name__ = ["haxe","Timer"];
-haxe_Timer.prototype = {
-	id: null
-	,stop: function() {
-		if(this.id == null) return;
-		clearInterval(this.id);
-		this.id = null;
-	}
-	,run: function() {
-	}
-	,__class__: haxe_Timer
 };
 var haxe_ds_ArraySort = function() { };
 $hxClasses["haxe.ds.ArraySort"] = haxe_ds_ArraySort;
@@ -2373,6 +1965,138 @@ haxe_ds__$StringMap_StringMapIterator.prototype = {
 	}
 	,__class__: haxe_ds__$StringMap_StringMapIterator
 };
+var haxe_macro_Constant = { __ename__ : true, __constructs__ : ["CInt","CFloat","CString","CIdent","CRegexp"] };
+haxe_macro_Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe_macro_Constant; $x.toString = $estr; return $x; };
+haxe_macro_Constant.CFloat = function(f) { var $x = ["CFloat",1,f]; $x.__enum__ = haxe_macro_Constant; $x.toString = $estr; return $x; };
+haxe_macro_Constant.CString = function(s) { var $x = ["CString",2,s]; $x.__enum__ = haxe_macro_Constant; $x.toString = $estr; return $x; };
+haxe_macro_Constant.CIdent = function(s) { var $x = ["CIdent",3,s]; $x.__enum__ = haxe_macro_Constant; $x.toString = $estr; return $x; };
+haxe_macro_Constant.CRegexp = function(r,opt) { var $x = ["CRegexp",4,r,opt]; $x.__enum__ = haxe_macro_Constant; $x.toString = $estr; return $x; };
+var haxe_macro_Binop = { __ename__ : true, __constructs__ : ["OpAdd","OpMult","OpDiv","OpSub","OpAssign","OpEq","OpNotEq","OpGt","OpGte","OpLt","OpLte","OpAnd","OpOr","OpXor","OpBoolAnd","OpBoolOr","OpShl","OpShr","OpUShr","OpMod","OpAssignOp","OpInterval","OpArrow"] };
+haxe_macro_Binop.OpAdd = ["OpAdd",0];
+haxe_macro_Binop.OpAdd.toString = $estr;
+haxe_macro_Binop.OpAdd.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpMult = ["OpMult",1];
+haxe_macro_Binop.OpMult.toString = $estr;
+haxe_macro_Binop.OpMult.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpDiv = ["OpDiv",2];
+haxe_macro_Binop.OpDiv.toString = $estr;
+haxe_macro_Binop.OpDiv.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpSub = ["OpSub",3];
+haxe_macro_Binop.OpSub.toString = $estr;
+haxe_macro_Binop.OpSub.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpAssign = ["OpAssign",4];
+haxe_macro_Binop.OpAssign.toString = $estr;
+haxe_macro_Binop.OpAssign.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpEq = ["OpEq",5];
+haxe_macro_Binop.OpEq.toString = $estr;
+haxe_macro_Binop.OpEq.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpNotEq = ["OpNotEq",6];
+haxe_macro_Binop.OpNotEq.toString = $estr;
+haxe_macro_Binop.OpNotEq.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpGt = ["OpGt",7];
+haxe_macro_Binop.OpGt.toString = $estr;
+haxe_macro_Binop.OpGt.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpGte = ["OpGte",8];
+haxe_macro_Binop.OpGte.toString = $estr;
+haxe_macro_Binop.OpGte.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpLt = ["OpLt",9];
+haxe_macro_Binop.OpLt.toString = $estr;
+haxe_macro_Binop.OpLt.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpLte = ["OpLte",10];
+haxe_macro_Binop.OpLte.toString = $estr;
+haxe_macro_Binop.OpLte.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpAnd = ["OpAnd",11];
+haxe_macro_Binop.OpAnd.toString = $estr;
+haxe_macro_Binop.OpAnd.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpOr = ["OpOr",12];
+haxe_macro_Binop.OpOr.toString = $estr;
+haxe_macro_Binop.OpOr.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpXor = ["OpXor",13];
+haxe_macro_Binop.OpXor.toString = $estr;
+haxe_macro_Binop.OpXor.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpBoolAnd = ["OpBoolAnd",14];
+haxe_macro_Binop.OpBoolAnd.toString = $estr;
+haxe_macro_Binop.OpBoolAnd.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpBoolOr = ["OpBoolOr",15];
+haxe_macro_Binop.OpBoolOr.toString = $estr;
+haxe_macro_Binop.OpBoolOr.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpShl = ["OpShl",16];
+haxe_macro_Binop.OpShl.toString = $estr;
+haxe_macro_Binop.OpShl.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpShr = ["OpShr",17];
+haxe_macro_Binop.OpShr.toString = $estr;
+haxe_macro_Binop.OpShr.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpUShr = ["OpUShr",18];
+haxe_macro_Binop.OpUShr.toString = $estr;
+haxe_macro_Binop.OpUShr.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpMod = ["OpMod",19];
+haxe_macro_Binop.OpMod.toString = $estr;
+haxe_macro_Binop.OpMod.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpAssignOp = function(op) { var $x = ["OpAssignOp",20,op]; $x.__enum__ = haxe_macro_Binop; $x.toString = $estr; return $x; };
+haxe_macro_Binop.OpInterval = ["OpInterval",21];
+haxe_macro_Binop.OpInterval.toString = $estr;
+haxe_macro_Binop.OpInterval.__enum__ = haxe_macro_Binop;
+haxe_macro_Binop.OpArrow = ["OpArrow",22];
+haxe_macro_Binop.OpArrow.toString = $estr;
+haxe_macro_Binop.OpArrow.__enum__ = haxe_macro_Binop;
+var haxe_macro_Unop = { __ename__ : true, __constructs__ : ["OpIncrement","OpDecrement","OpNot","OpNeg","OpNegBits"] };
+haxe_macro_Unop.OpIncrement = ["OpIncrement",0];
+haxe_macro_Unop.OpIncrement.toString = $estr;
+haxe_macro_Unop.OpIncrement.__enum__ = haxe_macro_Unop;
+haxe_macro_Unop.OpDecrement = ["OpDecrement",1];
+haxe_macro_Unop.OpDecrement.toString = $estr;
+haxe_macro_Unop.OpDecrement.__enum__ = haxe_macro_Unop;
+haxe_macro_Unop.OpNot = ["OpNot",2];
+haxe_macro_Unop.OpNot.toString = $estr;
+haxe_macro_Unop.OpNot.__enum__ = haxe_macro_Unop;
+haxe_macro_Unop.OpNeg = ["OpNeg",3];
+haxe_macro_Unop.OpNeg.toString = $estr;
+haxe_macro_Unop.OpNeg.__enum__ = haxe_macro_Unop;
+haxe_macro_Unop.OpNegBits = ["OpNegBits",4];
+haxe_macro_Unop.OpNegBits.toString = $estr;
+haxe_macro_Unop.OpNegBits.__enum__ = haxe_macro_Unop;
+var haxe_macro_ExprDef = { __ename__ : true, __constructs__ : ["EConst","EArray","EBinop","EField","EParenthesis","EObjectDecl","EArrayDecl","ECall","ENew","EUnop","EVars","EFunction","EBlock","EFor","EIn","EIf","EWhile","ESwitch","ETry","EReturn","EBreak","EContinue","EUntyped","EThrow","ECast","EDisplay","EDisplayNew","ETernary","ECheckType","EMeta"] };
+haxe_macro_ExprDef.EConst = function(c) { var $x = ["EConst",0,c]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EArray = function(e1,e2) { var $x = ["EArray",1,e1,e2]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EBinop = function(op,e1,e2) { var $x = ["EBinop",2,op,e1,e2]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EField = function(e,field) { var $x = ["EField",3,e,field]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EParenthesis = function(e) { var $x = ["EParenthesis",4,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EObjectDecl = function(fields) { var $x = ["EObjectDecl",5,fields]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EArrayDecl = function(values) { var $x = ["EArrayDecl",6,values]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.ECall = function(e,params) { var $x = ["ECall",7,e,params]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.ENew = function(t,params) { var $x = ["ENew",8,t,params]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EUnop = function(op,postFix,e) { var $x = ["EUnop",9,op,postFix,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EVars = function(vars) { var $x = ["EVars",10,vars]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EFunction = function(name,f) { var $x = ["EFunction",11,name,f]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EBlock = function(exprs) { var $x = ["EBlock",12,exprs]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EFor = function(it,expr) { var $x = ["EFor",13,it,expr]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EIn = function(e1,e2) { var $x = ["EIn",14,e1,e2]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EIf = function(econd,eif,eelse) { var $x = ["EIf",15,econd,eif,eelse]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EWhile = function(econd,e,normalWhile) { var $x = ["EWhile",16,econd,e,normalWhile]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.ESwitch = function(e,cases,edef) { var $x = ["ESwitch",17,e,cases,edef]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.ETry = function(e,catches) { var $x = ["ETry",18,e,catches]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EReturn = function(e) { var $x = ["EReturn",19,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EBreak = ["EBreak",20];
+haxe_macro_ExprDef.EBreak.toString = $estr;
+haxe_macro_ExprDef.EBreak.__enum__ = haxe_macro_ExprDef;
+haxe_macro_ExprDef.EContinue = ["EContinue",21];
+haxe_macro_ExprDef.EContinue.toString = $estr;
+haxe_macro_ExprDef.EContinue.__enum__ = haxe_macro_ExprDef;
+haxe_macro_ExprDef.EUntyped = function(e) { var $x = ["EUntyped",22,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EThrow = function(e) { var $x = ["EThrow",23,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.ECast = function(e,t) { var $x = ["ECast",24,e,t]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EDisplay = function(e,isCall) { var $x = ["EDisplay",25,e,isCall]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EDisplayNew = function(t) { var $x = ["EDisplayNew",26,t]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.ETernary = function(econd,eif,eelse) { var $x = ["ETernary",27,econd,eif,eelse]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.ECheckType = function(e,t) { var $x = ["ECheckType",28,e,t]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EMeta = function(s,e) { var $x = ["EMeta",29,s,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+var haxe_macro_ComplexType = { __ename__ : true, __constructs__ : ["TPath","TFunction","TAnonymous","TParent","TExtend","TOptional"] };
+haxe_macro_ComplexType.TPath = function(p) { var $x = ["TPath",0,p]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
+haxe_macro_ComplexType.TFunction = function(args,ret) { var $x = ["TFunction",1,args,ret]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
+haxe_macro_ComplexType.TAnonymous = function(fields) { var $x = ["TAnonymous",2,fields]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
+haxe_macro_ComplexType.TParent = function(t) { var $x = ["TParent",3,t]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
+haxe_macro_ComplexType.TExtend = function(p,fields) { var $x = ["TExtend",4,p,fields]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
+haxe_macro_ComplexType.TOptional = function(t) { var $x = ["TOptional",5,t]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
 var haxe_rtti_Meta = function() { };
 $hxClasses["haxe.rtti.Meta"] = haxe_rtti_Meta;
 haxe_rtti_Meta.__name__ = ["haxe","rtti","Meta"];
@@ -2709,157 +2433,6 @@ haxe_xml_Parser.doParse = function(str,strict,p,parent) {
 	}
 	throw new js__$Boot_HaxeError("Unexpected end");
 };
-var haxe_xml_Printer = function(pretty) {
-	this.output = new StringBuf();
-	this.pretty = pretty;
-};
-$hxClasses["haxe.xml.Printer"] = haxe_xml_Printer;
-haxe_xml_Printer.__name__ = ["haxe","xml","Printer"];
-haxe_xml_Printer.print = function(xml,pretty) {
-	if(pretty == null) pretty = false;
-	var printer = new haxe_xml_Printer(pretty);
-	printer.writeNode(xml,"");
-	return printer.output.b;
-};
-haxe_xml_Printer.prototype = {
-	output: null
-	,pretty: null
-	,writeNode: function(value,tabs) {
-		var _g = value.nodeType;
-		switch(_g) {
-		case 2:
-			this.output.b += Std.string(tabs + "<![CDATA[");
-			this.write(StringTools.trim((function($this) {
-				var $r;
-				if(value.nodeType == Xml.Document || value.nodeType == Xml.Element) throw new js__$Boot_HaxeError("Bad node type, unexpected " + value.nodeType);
-				$r = value.nodeValue;
-				return $r;
-			}(this))));
-			this.output.b += "]]>";
-			if(this.pretty) this.output.b += "";
-			break;
-		case 3:
-			var commentContent;
-			if(value.nodeType == Xml.Document || value.nodeType == Xml.Element) throw new js__$Boot_HaxeError("Bad node type, unexpected " + value.nodeType);
-			commentContent = value.nodeValue;
-			commentContent = new EReg("[\n\r\t]+","g").replace(commentContent,"");
-			commentContent = "<!--" + commentContent + "-->";
-			if(tabs == null) this.output.b += "null"; else this.output.b += "" + tabs;
-			this.write(StringTools.trim(commentContent));
-			if(this.pretty) this.output.b += "";
-			break;
-		case 6:
-			var $it0 = (function($this) {
-				var $r;
-				if(value.nodeType != Xml.Document && value.nodeType != Xml.Element) throw new js__$Boot_HaxeError("Bad node type, expected Element or Document but found " + value.nodeType);
-				$r = HxOverrides.iter(value.children);
-				return $r;
-			}(this));
-			while( $it0.hasNext() ) {
-				var child = $it0.next();
-				this.writeNode(child,tabs);
-			}
-			break;
-		case 0:
-			this.output.b += Std.string(tabs + "<");
-			this.write((function($this) {
-				var $r;
-				if(value.nodeType != Xml.Element) throw new js__$Boot_HaxeError("Bad node type, expected Element but found " + value.nodeType);
-				$r = value.nodeName;
-				return $r;
-			}(this)));
-			var $it1 = value.attributes();
-			while( $it1.hasNext() ) {
-				var attribute = $it1.next();
-				this.output.b += Std.string(" " + attribute + "=\"");
-				this.write(StringTools.htmlEscape(value.get(attribute),true));
-				this.output.b += "\"";
-			}
-			if(this.hasChildren(value)) {
-				this.output.b += ">";
-				if(this.pretty) this.output.b += "";
-				var $it2 = (function($this) {
-					var $r;
-					if(value.nodeType != Xml.Document && value.nodeType != Xml.Element) throw new js__$Boot_HaxeError("Bad node type, expected Element or Document but found " + value.nodeType);
-					$r = HxOverrides.iter(value.children);
-					return $r;
-				}(this));
-				while( $it2.hasNext() ) {
-					var child1 = $it2.next();
-					this.writeNode(child1,this.pretty?tabs + "\t":tabs);
-				}
-				this.output.b += Std.string(tabs + "</");
-				this.write((function($this) {
-					var $r;
-					if(value.nodeType != Xml.Element) throw new js__$Boot_HaxeError("Bad node type, expected Element but found " + value.nodeType);
-					$r = value.nodeName;
-					return $r;
-				}(this)));
-				this.output.b += ">";
-				if(this.pretty) this.output.b += "";
-			} else {
-				this.output.b += "/>";
-				if(this.pretty) this.output.b += "";
-			}
-			break;
-		case 1:
-			var nodeValue;
-			if(value.nodeType == Xml.Document || value.nodeType == Xml.Element) throw new js__$Boot_HaxeError("Bad node type, unexpected " + value.nodeType);
-			nodeValue = value.nodeValue;
-			if(nodeValue.length != 0) {
-				this.write(tabs + StringTools.htmlEscape(nodeValue));
-				if(this.pretty) this.output.b += "";
-			}
-			break;
-		case 5:
-			this.write("<?" + (function($this) {
-				var $r;
-				if(value.nodeType == Xml.Document || value.nodeType == Xml.Element) throw new js__$Boot_HaxeError("Bad node type, unexpected " + value.nodeType);
-				$r = value.nodeValue;
-				return $r;
-			}(this)) + "?>");
-			break;
-		case 4:
-			this.write("<!DOCTYPE " + (function($this) {
-				var $r;
-				if(value.nodeType == Xml.Document || value.nodeType == Xml.Element) throw new js__$Boot_HaxeError("Bad node type, unexpected " + value.nodeType);
-				$r = value.nodeValue;
-				return $r;
-			}(this)) + ">");
-			break;
-		}
-	}
-	,write: function(input) {
-		if(input == null) this.output.b += "null"; else this.output.b += "" + input;
-	}
-	,hasChildren: function(value) {
-		var $it0 = (function($this) {
-			var $r;
-			if(value.nodeType != Xml.Document && value.nodeType != Xml.Element) throw new js__$Boot_HaxeError("Bad node type, expected Element or Document but found " + value.nodeType);
-			$r = HxOverrides.iter(value.children);
-			return $r;
-		}(this));
-		while( $it0.hasNext() ) {
-			var child = $it0.next();
-			var _g = child.nodeType;
-			switch(_g) {
-			case 0:case 1:
-				return true;
-			case 2:case 3:
-				if(StringTools.ltrim((function($this) {
-					var $r;
-					if(child.nodeType == Xml.Document || child.nodeType == Xml.Element) throw new js__$Boot_HaxeError("Bad node type, unexpected " + child.nodeType);
-					$r = child.nodeValue;
-					return $r;
-				}(this))).length != 0) return true;
-				break;
-			default:
-			}
-		}
-		return false;
-	}
-	,__class__: haxe_xml_Printer
-};
 var hex_collection_ILocator = function() { };
 $hxClasses["hex.collection.ILocator"] = hex_collection_ILocator;
 hex_collection_ILocator.__name__ = ["hex","collection","ILocator"];
@@ -2972,6 +2545,749 @@ hex_collection_LocatorMessage.__name__ = ["hex","collection","LocatorMessage"];
 hex_collection_LocatorMessage.prototype = {
 	__class__: hex_collection_LocatorMessage
 };
+var hex_compiler_CompileTimeFastEval = function() {
+};
+$hxClasses["hex.compiler.CompileTimeFastEval"] = hex_compiler_CompileTimeFastEval;
+hex_compiler_CompileTimeFastEval.__name__ = ["hex","compiler","CompileTimeFastEval"];
+hex_compiler_CompileTimeFastEval.fromTarget = function(target,toEval,coreFactory) {
+	var members = toEval.split(".");
+	var result;
+	while(members.length > 0) {
+		var member = members.shift();
+		result = Reflect.field(target,member);
+		if(result == null) {
+		}
+		target = result;
+	}
+	return target;
+};
+hex_compiler_CompileTimeFastEval.prototype = {
+	__class__: hex_compiler_CompileTimeFastEval
+};
+var hex_ioc_assembler_IApplicationAssembler = function() { };
+$hxClasses["hex.ioc.assembler.IApplicationAssembler"] = hex_ioc_assembler_IApplicationAssembler;
+hex_ioc_assembler_IApplicationAssembler.__name__ = ["hex","ioc","assembler","IApplicationAssembler"];
+hex_ioc_assembler_IApplicationAssembler.prototype = {
+	getContextFactory: null
+	,buildEverything: null
+	,release: null
+	,buildProperty: null
+	,buildObject: null
+	,buildMethodCall: null
+	,buildDomainListener: null
+	,configureStateTransition: null
+	,getApplicationContext: null
+	,setStrictMode: null
+	,isInStrictMode: null
+	,addConditionalProperty: null
+	,allowsIfList: null
+	,allowsIfNotList: null
+	,__class__: hex_ioc_assembler_IApplicationAssembler
+};
+var hex_compiler_assembler_CompileTimeApplicationAssembler = function() {
+	this._strictMode = true;
+	this._conditionalProperties = new haxe_ds_StringMap();
+	this._mContextFactories = new haxe_ds_ObjectMap();
+	this._mApplicationContext = new haxe_ds_StringMap();
+};
+$hxClasses["hex.compiler.assembler.CompileTimeApplicationAssembler"] = hex_compiler_assembler_CompileTimeApplicationAssembler;
+hex_compiler_assembler_CompileTimeApplicationAssembler.__name__ = ["hex","compiler","assembler","CompileTimeApplicationAssembler"];
+hex_compiler_assembler_CompileTimeApplicationAssembler.__interfaces__ = [hex_ioc_assembler_IApplicationAssembler];
+hex_compiler_assembler_CompileTimeApplicationAssembler._deserializeArguments = function(ownerID,args) {
+	var length = args.length;
+	var index;
+	var obj;
+	var _g = 0;
+	while(_g < length) {
+		var index1 = _g++;
+		args[index1] = hex_compiler_assembler_CompileTimeApplicationAssembler._getConstructorVO(ownerID,args[index1]);
+	}
+};
+hex_compiler_assembler_CompileTimeApplicationAssembler._getConstructorVO = function(ownerID,obj) {
+	if(obj.method != null) return new hex_ioc_vo_ConstructorVO(null,"Function",[obj.method]); else if(obj.ref != null) return new hex_ioc_vo_ConstructorVO(null,"Instance",null,null,null,false,obj.ref); else if(obj.staticRef != null) return new hex_ioc_vo_ConstructorVO(null,"Instance",null,null,null,false,null,null,obj.staticRef); else {
+		var type;
+		if(obj.type != null) type = obj.type; else type = "String";
+		return new hex_ioc_vo_ConstructorVO(ownerID,type,[obj.value]);
+	}
+};
+hex_compiler_assembler_CompileTimeApplicationAssembler.prototype = {
+	_mApplicationContext: null
+	,_mContextFactories: null
+	,_conditionalProperties: null
+	,_strictMode: null
+	,_mainExpr: null
+	,_expressions: null
+	,addExpression: function(expr) {
+		this._expressions.push(expr);
+	}
+	,getMainExpression: function() {
+		return { expr : haxe_macro_ExprDef.EBlock(this._expressions), pos : { file : "lib/hexMachina/hexIoC/src/hex/compiler/assembler/CompileTimeApplicationAssembler.hx", min : 1343, max : 1364}};
+	}
+	,getContextFactory: function(applicationContext) {
+		return this._mContextFactories.h[applicationContext.__id__];
+	}
+	,release: function() {
+	}
+	,buildProperty: function(applicationContext,ownerID,name,value,type,ref,method,staticRef,ifList,ifNotList) {
+		if(this.allowsIfList(ifList) && this.allowsIfNotList(ifNotList)) this.getContextFactory(applicationContext).registerPropertyVO(ownerID,new hex_ioc_vo_PropertyVO(ownerID,name,value,type,ref,method,staticRef));
+	}
+	,buildObject: function(applicationContext,ownerID,type,args,factory,singleton,injectInto,mapType,staticRef,ifList,ifNotList) {
+		if(injectInto == null) injectInto = false;
+		if(this.allowsIfList(ifList) && this.allowsIfNotList(ifNotList)) {
+			this._registerID(applicationContext,ownerID);
+			var constructorVO = new hex_ioc_vo_ConstructorVO(ownerID,type,args,factory,singleton,injectInto,null,mapType,staticRef);
+			this.getContextFactory(applicationContext).registerConstructorVO(ownerID,constructorVO);
+		}
+	}
+	,buildMethodCall: function(applicationContext,ownerID,methodCallName,args,ifList,ifNotList) {
+		if(this.allowsIfList(ifList) && this.allowsIfNotList(ifNotList)) this.getContextFactory(applicationContext).registerMethodCallVO(new hex_ioc_vo_MethodCallVO(ownerID,methodCallName,args));
+	}
+	,buildDomainListener: function(applicationContext,ownerID,listenedDomainName,args,ifList,ifNotList) {
+	}
+	,configureStateTransition: function(applicationContext,ID,staticReference,instanceReference,enterList,exitList,ifList,ifNotList) {
+	}
+	,buildEverything: function() {
+		var itFactory = this._mContextFactories.iterator();
+		var builderFactories = [];
+		while(itFactory.hasNext()) builderFactories.push(itFactory.next());
+		var itFactory1 = this._mContextFactories.iterator();
+		while(itFactory1.hasNext()) itFactory1.next().buildAllStateTransitions();
+		var applicationContexts = [];
+		var itContext = this._mApplicationContext.iterator();
+		while(itContext.hasNext()) applicationContexts.push(itContext.next());
+		var len = builderFactories.length;
+		var i;
+		var _g = 0;
+		while(_g < len) {
+			var i1 = _g++;
+			builderFactories[i1].buildAllObjects();
+		}
+		var _g1 = 0;
+		while(_g1 < len) {
+			var i2 = _g1++;
+			builderFactories[i2].assignAllDomainListeners();
+		}
+		var _g2 = 0;
+		while(_g2 < len) {
+			var i3 = _g2++;
+			builderFactories[i3].callAllMethods();
+		}
+		var _g3 = 0;
+		while(_g3 < len) {
+			var i4 = _g3++;
+			builderFactories[i4].callModuleInitialisation();
+		}
+	}
+	,getApplicationContext: function(applicationContextName,applicationContextClass) {
+		var applicationContext;
+		if(this._mApplicationContext.exists(applicationContextName)) applicationContext = this._mApplicationContext.get(applicationContextName); else {
+			var builderFactory = new hex_compiler_core_CompileTimeContextFactory(this._expressions,applicationContextName,applicationContextClass);
+			applicationContext = builderFactory.getApplicationContext();
+			this._mApplicationContext.set(applicationContextName,applicationContext);
+			this._mContextFactories.set(applicationContext,builderFactory);
+		}
+		return applicationContext;
+	}
+	,setStrictMode: function(b) {
+		this._strictMode = b;
+	}
+	,isInStrictMode: function() {
+		return this._strictMode;
+	}
+	,addConditionalProperty: function(conditionalProperties) {
+		var i = conditionalProperties.keys();
+		var key;
+		while(i.hasNext()) {
+			key = i.next();
+			if(!this._conditionalProperties.exists(key)) {
+				var value;
+				value = __map_reserved[key] != null?conditionalProperties.getReserved(key):conditionalProperties.h[key];
+				this._conditionalProperties.set(key,value);
+			} else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("addConditionalcontext fails with key'" + key + "', this key was already assigned",{ fileName : "CompileTimeApplicationAssembler.hx", lineNumber : 249, className : "hex.compiler.assembler.CompileTimeApplicationAssembler", methodName : "addConditionalProperty"}));
+		}
+	}
+	,allowsIfList: function(ifList) {
+		if(ifList != null) {
+			var _g = 0;
+			while(_g < ifList.length) {
+				var ifItem = ifList[_g];
+				++_g;
+				if(this._conditionalProperties.exists(ifItem)) {
+					if(this._conditionalProperties.get(ifItem)) return true;
+				} else if(this._strictMode) throw new js__$Boot_HaxeError(new hex_ioc_error_BuildingException("'" + ifItem + "' was not found in application assembler",{ fileName : "CompileTimeApplicationAssembler.hx", lineNumber : 269, className : "hex.compiler.assembler.CompileTimeApplicationAssembler", methodName : "allowsIfList"}));
+			}
+		} else return true;
+		return false;
+	}
+	,allowsIfNotList: function(ifNotList) {
+		if(ifNotList != null) {
+			var _g = 0;
+			while(_g < ifNotList.length) {
+				var ifNotItem = ifNotList[_g];
+				++_g;
+				if(this._conditionalProperties.exists(ifNotItem)) {
+					if(this._conditionalProperties.get(ifNotItem)) return false;
+				} else if(this._strictMode) throw new js__$Boot_HaxeError(new hex_ioc_error_BuildingException("'" + ifNotItem + "' was not found in application assembler",{ fileName : "CompileTimeApplicationAssembler.hx", lineNumber : 296, className : "hex.compiler.assembler.CompileTimeApplicationAssembler", methodName : "allowsIfNotList"}));
+			}
+		}
+		return true;
+	}
+	,_registerID: function(applicationContext,ID) {
+		return this.getContextFactory(applicationContext).registerID(ID);
+	}
+	,__class__: hex_compiler_assembler_CompileTimeApplicationAssembler
+};
+var hex_ioc_core_IContextFactory = function() { };
+$hxClasses["hex.ioc.core.IContextFactory"] = hex_ioc_core_IContextFactory;
+hex_ioc_core_IContextFactory.__name__ = ["hex","ioc","core","IContextFactory"];
+hex_ioc_core_IContextFactory.prototype = {
+	registerID: null
+	,registerStateTransitionVO: null
+	,buildStateTransition: null
+	,buildAllStateTransitions: null
+	,registerPropertyVO: null
+	,registerConstructorVO: null
+	,buildObject: null
+	,buildAllObjects: null
+	,registerDomainListenerVO: null
+	,assignDomainListener: null
+	,assignAllDomainListeners: null
+	,registerMethodCallVO: null
+	,callMethod: null
+	,callAllMethods: null
+	,callModuleInitialisation: null
+	,getApplicationContext: null
+	,getAnnotationProvider: null
+	,getCoreFactory: null
+	,release: null
+	,__class__: hex_ioc_core_IContextFactory
+};
+var hex_compiler_core_CompileTimeContextFactory = function(expressions,applicationContextName,applicationContextClass) {
+	this._expressions = expressions;
+	var domain = hex_domain_DomainUtil.getDomain(applicationContextName,hex_domain_Domain);
+	this._contextDispatcher = hex_domain_ApplicationDomainDispatcher.getInstance().getDomainDispatcher(domain);
+	this._coreFactory = new hex_compiler_core_CompileTimeCoreFactory(this._expressions);
+	if(applicationContextClass != null) this._applicationContext = new hex_ioc_assembler_AbstractApplicationContext(this._coreFactory,applicationContextName); else this._applicationContext = new hex_ioc_assembler_AbstractApplicationContext(this._coreFactory,applicationContextName);
+	this._coreFactory.register(applicationContextName,this._applicationContext);
+	this._init();
+};
+$hxClasses["hex.compiler.core.CompileTimeContextFactory"] = hex_compiler_core_CompileTimeContextFactory;
+hex_compiler_core_CompileTimeContextFactory.__name__ = ["hex","compiler","core","CompileTimeContextFactory"];
+hex_compiler_core_CompileTimeContextFactory.__interfaces__ = [hex_collection_ILocatorListener,hex_ioc_core_IContextFactory];
+hex_compiler_core_CompileTimeContextFactory.prototype = {
+	_expressions: null
+	,_annotationProvider: null
+	,_contextDispatcher: null
+	,_moduleLocator: null
+	,_applicationContext: null
+	,_factoryMap: null
+	,_coreFactory: null
+	,_IDExpert: null
+	,_constructorVOLocator: null
+	,_propertyVOLocator: null
+	,_methodCallVOLocator: null
+	,_domainListenerVOLocator: null
+	,_stateTransitionVOLocator: null
+	,registerID: function(id) {
+		return this._IDExpert.register(id);
+	}
+	,registerStateTransitionVO: function(id,stateTransitionVO) {
+		this._stateTransitionVOLocator.register(id,stateTransitionVO);
+	}
+	,buildStateTransition: function(key) {
+		this._stateTransitionVOLocator.buildStateTransition(key);
+	}
+	,buildAllStateTransitions: function() {
+		var keys = this._stateTransitionVOLocator.keys();
+		var _g = 0;
+		while(_g < keys.length) {
+			var key = keys[_g];
+			++_g;
+			this._stateTransitionVOLocator.buildStateTransition(key);
+		}
+	}
+	,registerPropertyVO: function(id,propertyVO) {
+		if(this._propertyVOLocator.isRegisteredWithKey(id)) this._propertyVOLocator.locate(id).push(propertyVO); else this._propertyVOLocator.register(id,[propertyVO]);
+	}
+	,_getPropertyValue: function(property,id) {
+		var value = null;
+		var propertyName = property.name;
+		if(property.method != null) {
+		} else if(property.ref != null) {
+		} else if(property.staticRef != null) {
+		} else {
+		}
+		return value;
+	}
+	,_setPropertyValue: function(property,target,id) {
+		var propertyName = property.name;
+		if(propertyName.indexOf(".") == -1) {
+			var value = this._getPropertyValue(property,id);
+			Reflect.setProperty(target,propertyName,value);
+		} else {
+			var props = propertyName.split(".");
+			propertyName = props.pop();
+			var target1 = this._coreFactory.fastEvalFromTarget(target,props.join("."));
+			Reflect.setProperty(target1,propertyName,this._getPropertyValue(property,id));
+		}
+	}
+	,onRegister: function(key,instance) {
+		if(this._propertyVOLocator.isRegisteredWithKey(key)) {
+			var properties = this._propertyVOLocator.locate(key);
+			var _g = 0;
+			while(_g < properties.length) {
+				var p = properties[_g];
+				++_g;
+				this._setPropertyValue(p,instance,key);
+			}
+		}
+	}
+	,onUnregister: function(key) {
+	}
+	,handleEvent: function(e) {
+	}
+	,registerConstructorVO: function(id,constructorVO) {
+		this._constructorVOLocator.register(id,constructorVO);
+	}
+	,buildObject: function(id) {
+	}
+	,buildAllObjects: function() {
+		var keys = this._constructorVOLocator.keys();
+		var _g = 0;
+		while(_g < keys.length) {
+			var key = keys[_g];
+			++_g;
+			this.buildObject(key);
+		}
+	}
+	,registerDomainListenerVO: function(domainListenerVO) {
+		this._domainListenerVOLocator.register("" + hex_core_HashCodeFactory.getKey(domainListenerVO),domainListenerVO);
+	}
+	,assignAllDomainListeners: function() {
+		var listeners = this._domainListenerVOLocator.keys();
+		var _g = 0;
+		while(_g < listeners.length) {
+			var key = listeners[_g];
+			++_g;
+			this.assignDomainListener(key);
+		}
+		this._domainListenerVOLocator.clear();
+	}
+	,assignDomainListener: function(id) {
+		return hex_compiler_factory_DomainListenerFactory.build(id,this._domainListenerVOLocator,this._applicationContext,this._annotationProvider);
+	}
+	,registerMethodCallVO: function(methodCallVO) {
+		var index = this._methodCallVOLocator.keys().length + 1;
+		this._methodCallVOLocator.register("" + index,methodCallVO);
+	}
+	,callMethod: function(id) {
+	}
+	,callAllMethods: function() {
+		var keyList = this._methodCallVOLocator.keys();
+		var _g = 0;
+		while(_g < keyList.length) {
+			var key = keyList[_g];
+			++_g;
+			this.callMethod(key);
+		}
+		this._methodCallVOLocator.clear();
+	}
+	,callModuleInitialisation: function() {
+		this._moduleLocator.callModuleInitialisation();
+	}
+	,getApplicationContext: function() {
+		return this._applicationContext;
+	}
+	,getCoreFactory: function() {
+		return this._coreFactory;
+	}
+	,getAnnotationProvider: function() {
+		return this._annotationProvider;
+	}
+	,getStateTransitionVOLocator: function() {
+		return this._stateTransitionVOLocator;
+	}
+	,release: function() {
+		this._coreFactory.removeListener(this);
+		this._coreFactory.clear();
+		this._constructorVOLocator.release();
+		this._propertyVOLocator.release();
+		this._methodCallVOLocator.release();
+		this._domainListenerVOLocator.release();
+		this._stateTransitionVOLocator.release();
+		this._moduleLocator.release();
+		this._factoryMap = new haxe_ds_StringMap();
+		this._IDExpert.clear();
+	}
+	,_init: function() {
+		this._factoryMap = new haxe_ds_StringMap();
+		this._IDExpert = new hex_ioc_core_IDExpert();
+		this._constructorVOLocator = new hex_ioc_locator_ConstructorVOLocator();
+		this._propertyVOLocator = new hex_ioc_locator_PropertyVOLocator();
+		this._methodCallVOLocator = new hex_ioc_locator_MethodCallVOLocator();
+		this._domainListenerVOLocator = new hex_ioc_locator_DomainListenerVOLocator();
+		this._stateTransitionVOLocator = new hex_ioc_locator_StateTransitionVOLocator(this);
+		this._moduleLocator = new hex_ioc_locator_ModuleLocator(this);
+		this._coreFactory.addListener(this);
+	}
+	,__class__: hex_compiler_core_CompileTimeContextFactory
+};
+var hex_ioc_core_ICoreFactory = function() { };
+$hxClasses["hex.ioc.core.ICoreFactory"] = hex_ioc_core_ICoreFactory;
+hex_ioc_core_ICoreFactory.__name__ = ["hex","ioc","core","ICoreFactory"];
+hex_ioc_core_ICoreFactory.__interfaces__ = [hex_collection_ILocator];
+hex_ioc_core_ICoreFactory.prototype = {
+	getBasicInjector: null
+	,clear: null
+	,buildInstance: null
+	,fastEvalFromTarget: null
+	,__class__: hex_ioc_core_ICoreFactory
+};
+var hex_compiler_core_CompileTimeCoreFactory = function(expressions) {
+	this._expressions = expressions;
+	this._dispatcher = new hex_event_Dispatcher();
+	this._map = new haxe_ds_StringMap();
+};
+$hxClasses["hex.compiler.core.CompileTimeCoreFactory"] = hex_compiler_core_CompileTimeCoreFactory;
+hex_compiler_core_CompileTimeCoreFactory.__name__ = ["hex","compiler","core","CompileTimeCoreFactory"];
+hex_compiler_core_CompileTimeCoreFactory.__interfaces__ = [hex_ioc_core_ICoreFactory];
+hex_compiler_core_CompileTimeCoreFactory.setFastEvalMethod = function(method) {
+	hex_compiler_core_CompileTimeCoreFactory._fastEvalMethod = method;
+};
+hex_compiler_core_CompileTimeCoreFactory.prototype = {
+	_expressions: null
+	,_dispatcher: null
+	,_map: null
+	,getBasicInjector: function() {
+		return null;
+	}
+	,clear: function() {
+		this._map = new haxe_ds_StringMap();
+	}
+	,keys: function() {
+		var a = [];
+		var it = this._map.keys();
+		while(it.hasNext()) a.push(it.next());
+		return a;
+	}
+	,values: function() {
+		var a = [];
+		var it = this._map.iterator();
+		while(it.hasNext()) a.push(it.next());
+		return a;
+	}
+	,isRegisteredWithKey: function(key) {
+		var key1 = key;
+		return this._map.exists(key1);
+	}
+	,isInstanceRegistered: function(instance) {
+		return (function($this) {
+			var $r;
+			var _this = $this.values();
+			var x = instance;
+			$r = HxOverrides.indexOf(_this,x,0);
+			return $r;
+		}(this)) != -1;
+	}
+	,locate: function(key) {
+		if(this._map.exists(key)) return this._map.get(key); else if(key.indexOf(".") != -1) {
+			var props = key.split(".");
+			var baseKey = props.shift();
+			if(this._map.exists(baseKey)) {
+				var target = this._map.get(baseKey);
+				return this.fastEvalFromTarget(target,props.join("."));
+			}
+		}
+		throw new js__$Boot_HaxeError(new hex_error_NoSuchElementException("Can't find item with '" + key + "' key in " + hex_log_Stringifier.stringify(this),{ fileName : "CompileTimeCoreFactory.hx", lineNumber : 90, className : "hex.compiler.core.CompileTimeCoreFactory", methodName : "locate"}));
+	}
+	,register: function(key,element) {
+		if(!this._map.exists(key)) {
+			var value = element;
+			this._map.set(key,value);
+			this._dispatcher.dispatch(hex_collection_LocatorMessage.REGISTER,[key,element]);
+			return true;
+		} else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("register(" + key + ", " + Std.string(element) + ") fails, key is already registered.",{ fileName : "CompileTimeCoreFactory.hx", lineNumber : 103, className : "hex.compiler.core.CompileTimeCoreFactory", methodName : "register"}));
+	}
+	,unregisterWithKey: function(key) {
+		if(this._map.exists(key)) {
+			var instance = this._map.get(key);
+			this._map.remove(key);
+			this._dispatcher.dispatch(hex_collection_LocatorMessage.UNREGISTER,[key]);
+			return true;
+		} else return false;
+	}
+	,unregister: function(instance) {
+		var key = this.getKeyOfInstance(instance);
+		if(key != null) return this.unregisterWithKey(key); else return false;
+	}
+	,getKeyOfInstance: function(instance) {
+		var iterator = this._map.keys();
+		while(iterator.hasNext()) {
+			var key = iterator.next();
+			if(this._map.get(key) == instance) return key;
+		}
+		return null;
+	}
+	,add: function(map) {
+		var iterator = map.keys();
+		while(iterator.hasNext()) {
+			var key = iterator.next();
+			try {
+				this.register(key,__map_reserved[key] != null?map.getReserved(key):map.h[key]);
+			} catch( e ) {
+				if (e instanceof js__$Boot_HaxeError) e = e.val;
+				if( js_Boot.__instanceof(e,hex_error_IllegalArgumentException) ) {
+					e.message = Std.string(this) + ".add() fails. " + e.message;
+					throw new js__$Boot_HaxeError(e);
+				} else throw(e);
+			}
+		}
+	}
+	,addListener: function(listener) {
+		return this._dispatcher.addListener(listener);
+	}
+	,removeListener: function(listener) {
+		return this._dispatcher.removeListener(listener);
+	}
+	,buildInstance: function(qualifiedClassName,args,factoryMethod,singletonAccess,instantiateUnmapped) {
+		if(instantiateUnmapped == null) instantiateUnmapped = false;
+		var classReference;
+		try {
+			classReference = hex_util_ClassUtil.getClassReference(qualifiedClassName);
+		} catch( e ) {
+			if (e instanceof js__$Boot_HaxeError) e = e.val;
+			if( js_Boot.__instanceof(e,hex_error_IllegalArgumentException) ) {
+				throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("'" + qualifiedClassName + "' class is not available in current domain",{ fileName : "CompileTimeCoreFactory.hx", lineNumber : 182, className : "hex.compiler.core.CompileTimeCoreFactory", methodName : "buildInstance"}));
+			} else throw(e);
+		}
+		var obj = null;
+		if(instantiateUnmapped) {
+		} else if(factoryMethod != null) {
+			if(singletonAccess != null) {
+				var inst = null;
+				var singletonCall = Reflect.field(classReference,singletonAccess);
+				if(singletonCall != null) inst = singletonCall(); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + singletonAccess + "()' singleton access failed.",{ fileName : "CompileTimeCoreFactory.hx", lineNumber : 204, className : "hex.compiler.core.CompileTimeCoreFactory", methodName : "buildInstance"}));
+				var methodReference = Reflect.field(inst,factoryMethod);
+				if(methodReference != null) obj = Reflect.callMethod(inst,methodReference,args); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + singletonAccess + "()." + factoryMethod + "()' factory method call failed.",{ fileName : "CompileTimeCoreFactory.hx", lineNumber : 214, className : "hex.compiler.core.CompileTimeCoreFactory", methodName : "buildInstance"}));
+			} else {
+				var methodReference1 = Reflect.field(classReference,factoryMethod);
+				if(methodReference1 != null) obj = Reflect.callMethod(classReference,methodReference1,args); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + factoryMethod + "()' factory method call failed.",{ fileName : "CompileTimeCoreFactory.hx", lineNumber : 227, className : "hex.compiler.core.CompileTimeCoreFactory", methodName : "buildInstance"}));
+			}
+		} else if(singletonAccess != null) {
+			var singletonCall1 = Reflect.field(classReference,singletonAccess);
+			if(singletonCall1 != null) obj = singletonCall1(); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(qualifiedClassName + "." + singletonAccess + "()' singleton call failed.",{ fileName : "CompileTimeCoreFactory.hx", lineNumber : 240, className : "hex.compiler.core.CompileTimeCoreFactory", methodName : "buildInstance"}));
+		} else {
+			try {
+				obj = Type.createInstance(classReference,args != null?args:[]);
+			} catch( e1 ) {
+				if (e1 instanceof js__$Boot_HaxeError) e1 = e1.val;
+				throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("Instantiation of class '" + qualifiedClassName + "' failed with arguments: " + Std.string(args) + " : " + Std.string(e1),{ fileName : "CompileTimeCoreFactory.hx", lineNumber : 251, className : "hex.compiler.core.CompileTimeCoreFactory", methodName : "buildInstance"}));
+			}
+			if(js_Boot.__instanceof(obj,hex_core_IAnnotationParsable)) {
+			}
+			if(js_Boot.__instanceof(obj,hex_service_IService)) obj.createConfiguration();
+		}
+		return obj;
+	}
+	,fastEvalFromTarget: function(target,toEval) {
+		return hex_compiler_core_CompileTimeCoreFactory._fastEvalMethod(target,toEval,this);
+	}
+	,__class__: hex_compiler_core_CompileTimeCoreFactory
+};
+var hex_compiler_factory_ArrayFactory = function() {
+};
+$hxClasses["hex.compiler.factory.ArrayFactory"] = hex_compiler_factory_ArrayFactory;
+hex_compiler_factory_ArrayFactory.__name__ = ["hex","compiler","factory","ArrayFactory"];
+hex_compiler_factory_ArrayFactory.prototype = {
+	__class__: hex_compiler_factory_ArrayFactory
+};
+var hex_compiler_factory_BoolFactory = function() {
+};
+$hxClasses["hex.compiler.factory.BoolFactory"] = hex_compiler_factory_BoolFactory;
+hex_compiler_factory_BoolFactory.__name__ = ["hex","compiler","factory","BoolFactory"];
+hex_compiler_factory_BoolFactory.prototype = {
+	__class__: hex_compiler_factory_BoolFactory
+};
+var hex_compiler_factory_ClassFactory = function() {
+};
+$hxClasses["hex.compiler.factory.ClassFactory"] = hex_compiler_factory_ClassFactory;
+hex_compiler_factory_ClassFactory.__name__ = ["hex","compiler","factory","ClassFactory"];
+hex_compiler_factory_ClassFactory.prototype = {
+	__class__: hex_compiler_factory_ClassFactory
+};
+var hex_compiler_factory_ClassInstanceFactory = function() {
+};
+$hxClasses["hex.compiler.factory.ClassInstanceFactory"] = hex_compiler_factory_ClassInstanceFactory;
+hex_compiler_factory_ClassInstanceFactory.__name__ = ["hex","compiler","factory","ClassInstanceFactory"];
+hex_compiler_factory_ClassInstanceFactory.prototype = {
+	__class__: hex_compiler_factory_ClassInstanceFactory
+};
+var hex_compiler_factory_DomainListenerFactory = function() {
+};
+$hxClasses["hex.compiler.factory.DomainListenerFactory"] = hex_compiler_factory_DomainListenerFactory;
+hex_compiler_factory_DomainListenerFactory.__name__ = ["hex","compiler","factory","DomainListenerFactory"];
+hex_compiler_factory_DomainListenerFactory.build = function(id,domainListenerVOLocator,applicationContext,annotationProvider) {
+	var coreFactory = applicationContext.getCoreFactory();
+	var domainListener = domainListenerVOLocator.locate(id);
+	var listener = coreFactory.locate(domainListener.ownerID);
+	var args = domainListener["arguments"];
+	var observable = null;
+	if(coreFactory.isRegisteredWithKey(domainListener.listenedDomainName)) {
+		var located = coreFactory.locate(domainListener.listenedDomainName);
+		if(js_Boot.__instanceof(located,hex_event_IObservable)) observable = located;
+	}
+	if(args != null && args.length > 0) {
+		var _g = 0;
+		while(_g < args.length) {
+			var domainListenerArgument = args[_g];
+			++_g;
+			var method;
+			if(js_Boot.__instanceof(listener,hex_event_EventProxy)) method = "handleCallback"; else method = domainListenerArgument.method;
+			var messageType = hex_util_ClassUtil.getStaticVariableReference(domainListenerArgument.staticRef);
+			if(method != null && Reflect.isFunction(Reflect.field(listener,method)) || domainListenerArgument.strategy != null) {
+				var callback;
+				if(domainListenerArgument.strategy != null) callback = hex_compiler_factory_DomainListenerFactory._getStrategyCallback(annotationProvider,applicationContext,listener,method,domainListenerArgument.strategy,domainListenerArgument.injectedInModule); else callback = Reflect.field(listener,method);
+				if(observable != null) observable.addHandler(messageType,listener,callback); else {
+					var domain = hex_domain_DomainUtil.getDomain(domainListener.listenedDomainName,hex_domain_Domain);
+					hex_domain_ApplicationDomainDispatcher.getInstance().addHandler(messageType,listener,callback,domain);
+				}
+			} else if(method == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("DomainListenerFactory.build failed. Callback should be defined (use 'method' attribute) in instance of '" + hex_log_Stringifier.stringify(listener) + "' class with '" + domainListener.ownerID + "' id",{ fileName : "DomainListenerFactory.hx", lineNumber : 79, className : "hex.compiler.factory.DomainListenerFactory", methodName : "build"})); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("DomainListenerFactory.build failed. Method named '" + method + "' can't be found in instance of '" + hex_log_Stringifier.stringify(listener) + "' class with '" + domainListener.ownerID + "' id",{ fileName : "DomainListenerFactory.hx", lineNumber : 84, className : "hex.compiler.factory.DomainListenerFactory", methodName : "build"}));
+		}
+		return true;
+	} else {
+		var domain1 = hex_domain_DomainUtil.getDomain(domainListener.listenedDomainName,hex_domain_Domain);
+		return hex_domain_ApplicationDomainDispatcher.getInstance().addListener(listener,domain1);
+	}
+};
+hex_compiler_factory_DomainListenerFactory._getStrategyCallback = function(annotationProvider,applicationContext,listener,method,strategyClassName,injectedInModule) {
+	if(injectedInModule == null) injectedInModule = false;
+	var callback = Reflect.field(listener,method);
+	var strategyClass = hex_util_ClassUtil.getClassReference(strategyClassName);
+	var adapter = new hex_event_ClassAdapter();
+	adapter.setCallBackMethod(listener,callback);
+	adapter.setAdapterClass(strategyClass);
+	adapter.setAnnotationProvider(annotationProvider);
+	if(injectedInModule && js_Boot.__instanceof(listener,hex_module_IModule)) {
+		var basicInjector = listener.getBasicInjector();
+		adapter.setFactoryMethod(basicInjector,$bind(basicInjector,basicInjector.instantiateUnmapped));
+	} else adapter.setFactoryMethod(applicationContext.getBasicInjector(),($_=applicationContext.getBasicInjector(),$bind($_,$_.instantiateUnmapped)));
+	var f = function(rest) {
+		(adapter.getCallbackAdapter())(rest);
+	};
+	return Reflect.makeVarArgs(f);
+};
+hex_compiler_factory_DomainListenerFactory.prototype = {
+	__class__: hex_compiler_factory_DomainListenerFactory
+};
+var hex_compiler_factory_DynamicObjectFactory = function() {
+};
+$hxClasses["hex.compiler.factory.DynamicObjectFactory"] = hex_compiler_factory_DynamicObjectFactory;
+hex_compiler_factory_DynamicObjectFactory.__name__ = ["hex","compiler","factory","DynamicObjectFactory"];
+hex_compiler_factory_DynamicObjectFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	factoryVO.constructorVO.result = { };
+	return null;
+};
+hex_compiler_factory_DynamicObjectFactory.prototype = {
+	__class__: hex_compiler_factory_DynamicObjectFactory
+};
+var hex_compiler_factory_FloatFactory = function() {
+};
+$hxClasses["hex.compiler.factory.FloatFactory"] = hex_compiler_factory_FloatFactory;
+hex_compiler_factory_FloatFactory.__name__ = ["hex","compiler","factory","FloatFactory"];
+hex_compiler_factory_FloatFactory.prototype = {
+	__class__: hex_compiler_factory_FloatFactory
+};
+var hex_compiler_factory_FunctionFactory = function() {
+};
+$hxClasses["hex.compiler.factory.FunctionFactory"] = hex_compiler_factory_FunctionFactory;
+hex_compiler_factory_FunctionFactory.__name__ = ["hex","compiler","factory","FunctionFactory"];
+hex_compiler_factory_FunctionFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var method;
+	var msg;
+	var args = constructorVO["arguments"][0].split(".");
+	var targetID = args[0];
+	var path = args.slice(1).join(".");
+	if(!factoryVO.coreFactory.isRegisteredWithKey(targetID)) factoryVO.contextFactory.buildObject(targetID);
+	var target = factoryVO.coreFactory.locate(targetID);
+	try {
+		method = factoryVO.coreFactory.fastEvalFromTarget(target,path);
+	} catch( error ) {
+		if (error instanceof js__$Boot_HaxeError) error = error.val;
+		msg = "FunctionFactory.build() failed on " + Std.string(target) + " with id '" + targetID + "'. ";
+		msg += path + " method can't be found.";
+		throw new js__$Boot_HaxeError(new hex_error_Exception(msg,{ fileName : "FunctionFactory.hx", lineNumber : 44, className : "hex.compiler.factory.FunctionFactory", methodName : "build"}));
+	}
+	constructorVO.result = method;
+	return null;
+};
+hex_compiler_factory_FunctionFactory.prototype = {
+	__class__: hex_compiler_factory_FunctionFactory
+};
+var hex_compiler_factory_HashMapFactory = function() {
+};
+$hxClasses["hex.compiler.factory.HashMapFactory"] = hex_compiler_factory_HashMapFactory;
+hex_compiler_factory_HashMapFactory.__name__ = ["hex","compiler","factory","HashMapFactory"];
+hex_compiler_factory_HashMapFactory.prototype = {
+	__class__: hex_compiler_factory_HashMapFactory
+};
+var hex_compiler_factory_IntFactory = function() {
+};
+$hxClasses["hex.compiler.factory.IntFactory"] = hex_compiler_factory_IntFactory;
+hex_compiler_factory_IntFactory.__name__ = ["hex","compiler","factory","IntFactory"];
+hex_compiler_factory_IntFactory.prototype = {
+	__class__: hex_compiler_factory_IntFactory
+};
+var hex_compiler_factory_MappingConfigurationFactory = function() {
+};
+$hxClasses["hex.compiler.factory.MappingConfigurationFactory"] = hex_compiler_factory_MappingConfigurationFactory;
+hex_compiler_factory_MappingConfigurationFactory.__name__ = ["hex","compiler","factory","MappingConfigurationFactory"];
+hex_compiler_factory_MappingConfigurationFactory.prototype = {
+	__class__: hex_compiler_factory_MappingConfigurationFactory
+};
+var hex_compiler_factory_NullFactory = function() {
+};
+$hxClasses["hex.compiler.factory.NullFactory"] = hex_compiler_factory_NullFactory;
+hex_compiler_factory_NullFactory.__name__ = ["hex","compiler","factory","NullFactory"];
+hex_compiler_factory_NullFactory.prototype = {
+	__class__: hex_compiler_factory_NullFactory
+};
+var hex_compiler_factory_ServiceLocatorFactory = function() {
+};
+$hxClasses["hex.compiler.factory.ServiceLocatorFactory"] = hex_compiler_factory_ServiceLocatorFactory;
+hex_compiler_factory_ServiceLocatorFactory.__name__ = ["hex","compiler","factory","ServiceLocatorFactory"];
+hex_compiler_factory_ServiceLocatorFactory.prototype = {
+	__class__: hex_compiler_factory_ServiceLocatorFactory
+};
+var hex_compiler_factory_StaticVariableFactory = function() {
+};
+$hxClasses["hex.compiler.factory.StaticVariableFactory"] = hex_compiler_factory_StaticVariableFactory;
+hex_compiler_factory_StaticVariableFactory.__name__ = ["hex","compiler","factory","StaticVariableFactory"];
+hex_compiler_factory_StaticVariableFactory.prototype = {
+	__class__: hex_compiler_factory_StaticVariableFactory
+};
+var hex_compiler_factory_StringFactory = function() {
+};
+$hxClasses["hex.compiler.factory.StringFactory"] = hex_compiler_factory_StringFactory;
+hex_compiler_factory_StringFactory.__name__ = ["hex","compiler","factory","StringFactory"];
+hex_compiler_factory_StringFactory.prototype = {
+	__class__: hex_compiler_factory_StringFactory
+};
+var hex_compiler_factory_UIntFactory = function() {
+};
+$hxClasses["hex.compiler.factory.UIntFactory"] = hex_compiler_factory_UIntFactory;
+hex_compiler_factory_UIntFactory.__name__ = ["hex","compiler","factory","UIntFactory"];
+hex_compiler_factory_UIntFactory.prototype = {
+	__class__: hex_compiler_factory_UIntFactory
+};
+var hex_compiler_factory_XmlFactory = function() {
+};
+$hxClasses["hex.compiler.factory.XmlFactory"] = hex_compiler_factory_XmlFactory;
+hex_compiler_factory_XmlFactory.__name__ = ["hex","compiler","factory","XmlFactory"];
+hex_compiler_factory_XmlFactory.prototype = {
+	__class__: hex_compiler_factory_XmlFactory
+};
 var hex_compiler_parser_xml_ClassImportHelper = function() {
 	this._compiledClass = [];
 };
@@ -2981,40 +3297,9 @@ hex_compiler_parser_xml_ClassImportHelper.prototype = {
 	_compiledClass: null
 	,__class__: hex_compiler_parser_xml_ClassImportHelper
 };
-var hex_compiler_parser_xml_XmlContextReader = function() {
-};
-$hxClasses["hex.compiler.parser.xml.XmlContextReader"] = hex_compiler_parser_xml_XmlContextReader;
-hex_compiler_parser_xml_XmlContextReader.__name__ = ["hex","compiler","parser","xml","XmlContextReader"];
-hex_compiler_parser_xml_XmlContextReader.updateParentSize = function(xrd,lengthOffset,includeLengthOffset) {
-	var parent = xrd.parent;
-	parent.absLength = parent.absLength + lengthOffset;
-	parent.absIncludeLength = parent.absIncludeLength + includeLengthOffset;
-	if(parent.parent != null) hex_compiler_parser_xml_XmlContextReader.updateParentSize(parent,lengthOffset,includeLengthOffset);
-};
-hex_compiler_parser_xml_XmlContextReader.updateChildPosition = function(xrd,offset) {
-	var _g = 0;
-	var _g1 = xrd.children;
-	while(_g < _g1.length) {
-		var child = _g1[_g];
-		++_g;
-		child.absPosition = child.absPosition + offset;
-		if(child.children.length > 0) hex_compiler_parser_xml_XmlContextReader.updateChildPosition(child,offset);
-	}
-};
-hex_compiler_parser_xml_XmlContextReader.prototype = {
-	__class__: hex_compiler_parser_xml_XmlContextReader
-};
-var hex_compiler_parser_xml_XmlPositionTracker = function(document,data) {
-	this._document = document;
-	this._data = data;
-};
-$hxClasses["hex.compiler.parser.xml.XmlPositionTracker"] = hex_compiler_parser_xml_XmlPositionTracker;
-hex_compiler_parser_xml_XmlPositionTracker.__name__ = ["hex","compiler","parser","xml","XmlPositionTracker"];
-hex_compiler_parser_xml_XmlPositionTracker.prototype = {
-	_document: null
-	,_data: null
-	,__class__: hex_compiler_parser_xml_XmlPositionTracker
-};
+var hex_compiler_parser_xml_XmlCompiler = function() { };
+$hxClasses["hex.compiler.parser.xml.XmlCompiler"] = hex_compiler_parser_xml_XmlCompiler;
+hex_compiler_parser_xml_XmlCompiler.__name__ = ["hex","compiler","parser","xml","XmlCompiler"];
 var hex_config_stateful_IStatefulConfig = function() { };
 $hxClasses["hex.config.stateful.IStatefulConfig"] = hex_config_stateful_IStatefulConfig;
 hex_config_stateful_IStatefulConfig.__name__ = ["hex","config","stateful","IStatefulConfig"];
@@ -3038,7 +3323,7 @@ hex_config_stateful_ServiceLocator.prototype = $extend(hex_collection_Locator.pr
 		if(name.length > 0) helper = this.locate(name + "#" + Type.getClassName(type)); else helper = this.locate(Type.getClassName(type));
 		var service = helper.value;
 		if(js_Boot.__instanceof(service,Class)) service = Type.createInstance(service,[]);
-		if(js_Boot.__instanceof(service,hex_service_IService)) return service; else throw new js__$Boot_HaxeError(new hex_error_NoSuchElementException(Std.string(this) + ".getService failed to retrieve service with key '" + Std.string(type) + "'",{ fileName : "ServiceLocator.hx", lineNumber : 56, className : "hex.config.stateful.ServiceLocator", methodName : "getService"}));
+		if(js_Boot.__instanceof(service,hex_service_IService)) return service; else throw new js__$Boot_HaxeError(new hex_error_NoSuchElementException(Std.string(this) + ".getService failed to retrieve service with key '" + Std.string(type) + "'",{ fileName : "ServiceLocator.hx", lineNumber : 58, className : "hex.config.stateful.ServiceLocator", methodName : "getService"}));
 	}
 	,configure: function(injector,dispatcher,module) {
 		var keys = this.keys();
@@ -3051,13 +3336,11 @@ hex_config_stateful_ServiceLocator.prototype = $extend(hex_collection_Locator.pr
 			if(separatorIndex != -1) serviceClassKey = Type.resolveClass(HxOverrides.substr(className,separatorIndex + 1,null)); else serviceClassKey = Type.resolveClass(className);
 			var helper = this.locate(className);
 			var service = helper.value;
-			if(js_Boot.__instanceof(service,Class)) {
-				if(helper.mapName.length > 0) injector.mapToType(serviceClassKey,service,helper.mapName); else injector.mapToType(serviceClassKey,service);
-			} else if(js_Boot.__instanceof(service,hex_service_stateful_IStatefulService)) {
+			if(js_Boot.__instanceof(service,Class)) injector.mapToType(serviceClassKey,service,helper.mapName); else if(js_Boot.__instanceof(service,hex_service_stateful_IStatefulService)) {
 				var serviceDispatcher = service.getDispatcher();
 				if(serviceDispatcher != null) serviceDispatcher.add(dispatcher);
-				if(helper.mapName.length > 0) injector.mapToValue(serviceClassKey,service,helper.mapName); else injector.mapToValue(serviceClassKey,service);
-			} else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("Mapping failed on '" + Std.string(service) + "' This instance is not a stateful service nor a service class.",{ fileName : "ServiceLocator.hx", lineNumber : 110, className : "hex.config.stateful.ServiceLocator", methodName : "configure"}));
+				injector.mapToValue(serviceClassKey,service,helper.mapName);
+			} else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("Mapping failed on '" + Std.string(service) + "' This instance is not a stateful service nor a service class.",{ fileName : "ServiceLocator.hx", lineNumber : 98, className : "hex.config.stateful.ServiceLocator", methodName : "configure"}));
 			this._mapping.put(serviceClassKey,service);
 		}
 	}
@@ -3164,6 +3447,18 @@ hex_control_Request.prototype = {
 		return new hex_control_Request(this._executionPayloads);
 	}
 	,__class__: hex_control_Request
+};
+var hex_control_command_ICommand = function() { };
+$hxClasses["hex.control.command.ICommand"] = hex_control_command_ICommand;
+hex_control_command_ICommand.__name__ = ["hex","control","command","ICommand"];
+hex_control_command_ICommand.prototype = {
+	executeMethodName: null
+	,getResult: null
+	,getReturnedExecutionPayload: null
+	,getLogger: null
+	,getOwner: null
+	,setOwner: null
+	,__class__: hex_control_command_ICommand
 };
 var hex_control_async_IAsyncCommand = function() { };
 $hxClasses["hex.control.async.IAsyncCommand"] = hex_control_async_IAsyncCommand;
@@ -3571,37 +3866,21 @@ hex_control_command_CommandMapping.prototype = {
 	,__class__: hex_control_command_CommandMapping
 	,__properties__: {get_hasMappingResult:"get_hasMappingResult",get_hasCancelHandler:"get_hasCancelHandler",get_hasFailHandler:"get_hasFailHandler",get_hasCompleteHandler:"get_hasCompleteHandler",get_hasPayload:"get_hasPayload",get_isFiredOnce:"get_isFiredOnce",get_hasGuard:"get_hasGuard"}
 };
-var hex_control_controller_IObservable = function() { };
-$hxClasses["hex.control.controller.IObservable"] = hex_control_controller_IObservable;
-hex_control_controller_IObservable.__name__ = ["hex","control","controller","IObservable"];
 var hex_control_controller_ControllerResponder = function(asyncCommand) {
 	this._asyncCommand = asyncCommand;
 };
 $hxClasses["hex.control.controller.ControllerResponder"] = hex_control_controller_ControllerResponder;
 hex_control_controller_ControllerResponder.__name__ = ["hex","control","controller","ControllerResponder"];
-hex_control_controller_ControllerResponder.__interfaces__ = [hex_control_controller_IObservable];
+hex_control_controller_ControllerResponder.__interfaces__ = [hex_control_controller_ICompletable];
 hex_control_controller_ControllerResponder.prototype = {
 	_asyncCommand: null
-	,addCompleteHandler: function(scope,callback) {
-		if(this._asyncCommand.get_hasCompleted()) callback(this._asyncCommand); else this._asyncCommand.addCompleteHandler(scope,callback);
+	,onComplete: function(callback) {
+		this._asyncCommand.onComplete(callback);
+		return this;
 	}
-	,removeCompleteHandler: function(scope,callback) {
-		this._asyncCommand.removeCompleteHandler(scope,callback);
-	}
-	,addFailHandler: function(scope,callback) {
-		if(this._asyncCommand.get_hasFailed()) callback(this._asyncCommand); else this._asyncCommand.addFailHandler(scope,callback);
-	}
-	,removeFailHandler: function(scope,callback) {
-		this._asyncCommand.removeFailHandler(scope,callback);
-	}
-	,addCancelHandler: function(scope,callback) {
-		if(this._asyncCommand.get_isCancelled()) callback(this._asyncCommand); else this._asyncCommand.addCancelHandler(scope,callback);
-	}
-	,removeCancelHandler: function(scope,callback) {
-		this._asyncCommand.removeCancelHandler(scope,callback);
-	}
-	,getResult: function() {
-		return null;
+	,onFail: function(callback) {
+		this._asyncCommand.onFail(callback);
+		return this;
 	}
 	,__class__: hex_control_controller_ControllerResponder
 };
@@ -3914,6 +4193,9 @@ hex_core_HashCodeFactory.previewNextKey = function() {
 hex_core_HashCodeFactory.prototype = {
 	__class__: hex_core_HashCodeFactory
 };
+var hex_core_IAnnotationParsable = function() { };
+$hxClasses["hex.core.IAnnotationParsable"] = hex_core_IAnnotationParsable;
+hex_core_IAnnotationParsable.__name__ = ["hex","core","IAnnotationParsable"];
 var hex_di_IBasicInjector = function() { };
 $hxClasses["hex.di.IBasicInjector"] = hex_di_IBasicInjector;
 hex_di_IBasicInjector.__name__ = ["hex","di","IBasicInjector"];
@@ -4032,7 +4314,7 @@ hex_di_Injector.prototype = {
 		if(name == null) name = "";
 		this.map(clazz,name).toSingleton(type);
 	}
-	,getInstance: function(type,name,targetType) {
+	,getInstance: function(type,name) {
 		if(name == null) name = "";
 		var mappingID = Type.getClassName(type) + "|" + name;
 		var mapping = this._mapping.get(mappingID);
@@ -4664,13 +4946,20 @@ hex_domain_TopLevelDomain.__super__ = hex_domain_Domain;
 hex_domain_TopLevelDomain.prototype = $extend(hex_domain_Domain.prototype,{
 	__class__: hex_domain_TopLevelDomain
 });
+var hex_event_IObservable = function() { };
+$hxClasses["hex.event.IObservable"] = hex_event_IObservable;
+hex_event_IObservable.__name__ = ["hex","event","IObservable"];
+hex_event_IObservable.prototype = {
+	addHandler: null
+	,removeHandler: null
+	,__class__: hex_event_IObservable
+};
 var hex_event_IDispatcher = function() { };
 $hxClasses["hex.event.IDispatcher"] = hex_event_IDispatcher;
 hex_event_IDispatcher.__name__ = ["hex","event","IDispatcher"];
+hex_event_IDispatcher.__interfaces__ = [hex_event_IObservable];
 hex_event_IDispatcher.prototype = {
 	dispatch: null
-	,addHandler: null
-	,removeHandler: null
 	,addListener: null
 	,removeListener: null
 	,removeAllListeners: null
@@ -5159,7 +5448,7 @@ hex_event_ClassAdapter.prototype = {
 				return;
 			} else if(adapterInstance != null) {
 				if(js_Boot.__instanceof(adapterInstance,hex_core_IAnnotationParsable)) annotationProvider.parse(adapterInstance);
-				if(adapterMethodName == "adapt") result = $bind(adapterInstance,adapterInstance.adapt).apply(adapterInstance,rest); else result = Reflect.callMethod(adapterInstance,Reflect.field(adapterInstance,adapterMethodName),rest);
+				if(adapterMethodName == "adapt") result = Reflect.callMethod(adapterInstance,adapterInstance.adapt,rest); else result = Reflect.callMethod(adapterInstance,Reflect.field(adapterInstance,adapterMethodName),rest);
 			}
 			Reflect.callMethod(callbackTarget,callbackMethod,(result instanceof Array) && result.__enum__ == null?result:[result]);
 		};
@@ -5511,26 +5800,6 @@ hex_ioc_assembler_AbstractApplicationContext.prototype = {
 	}
 	,__class__: hex_ioc_assembler_AbstractApplicationContext
 };
-var hex_ioc_assembler_IApplicationAssembler = function() { };
-$hxClasses["hex.ioc.assembler.IApplicationAssembler"] = hex_ioc_assembler_IApplicationAssembler;
-hex_ioc_assembler_IApplicationAssembler.__name__ = ["hex","ioc","assembler","IApplicationAssembler"];
-hex_ioc_assembler_IApplicationAssembler.prototype = {
-	getContextFactory: null
-	,buildEverything: null
-	,release: null
-	,buildProperty: null
-	,buildObject: null
-	,buildMethodCall: null
-	,buildDomainListener: null
-	,configureStateTransition: null
-	,getApplicationContext: null
-	,setStrictMode: null
-	,isInStrictMode: null
-	,addConditionalProperty: null
-	,allowsIfList: null
-	,allowsIfNotList: null
-	,__class__: hex_ioc_assembler_IApplicationAssembler
-};
 var hex_ioc_assembler_ApplicationAssembler = function() {
 	this._strictMode = true;
 	this._conditionalProperties = new haxe_ds_StringMap();
@@ -5864,8 +6133,7 @@ hex_ioc_control_DomainListenerFactory.build = function(id,domainListenerVOLocato
 			++_g;
 			var method;
 			if(js_Boot.__instanceof(listener,hex_event_EventProxy)) method = "handleCallback"; else method = domainListenerArgument.method;
-			var messageType;
-			if(domainListenerArgument.name != null) messageType = new hex_event_MessageType(domainListenerArgument.name); else messageType = hex_util_ClassUtil.getStaticVariableReference(domainListenerArgument.staticRef);
+			var messageType = hex_util_ClassUtil.getStaticVariableReference(domainListenerArgument.staticRef);
 			if(method != null && Reflect.isFunction(Reflect.field(listener,method)) || domainListenerArgument.strategy != null) {
 				var callback;
 				if(domainListenerArgument.strategy != null) callback = hex_ioc_control_DomainListenerFactory._getStrategyCallback(annotationProvider,applicationContext,listener,method,domainListenerArgument.strategy,domainListenerArgument.injectedInModule); else callback = Reflect.field(listener,method);
@@ -5873,7 +6141,7 @@ hex_ioc_control_DomainListenerFactory.build = function(id,domainListenerVOLocato
 					var domain = hex_domain_DomainUtil.getDomain(domainListener.listenedDomainName,hex_domain_Domain);
 					hex_domain_ApplicationDomainDispatcher.getInstance().addHandler(messageType,listener,callback,domain);
 				} else service.addHandler(messageType,listener,callback);
-			} else if(method == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("DomainListenerFactory.build failed. Callback should be defined (use 'method' attribute) in instance of '" + hex_log_Stringifier.stringify(listener) + "' class with '" + domainListener.ownerID + "' id",{ fileName : "DomainListenerFactory.hx", lineNumber : 81, className : "hex.ioc.control.DomainListenerFactory", methodName : "build"})); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("DomainListenerFactory.build failed. Method named '" + method + "' can't be found in instance of '" + hex_log_Stringifier.stringify(listener) + "' class with '" + domainListener.ownerID + "' id",{ fileName : "DomainListenerFactory.hx", lineNumber : 86, className : "hex.ioc.control.DomainListenerFactory", methodName : "build"}));
+			} else if(method == null) throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("DomainListenerFactory.build failed. Callback should be defined (use 'method' attribute) in instance of '" + hex_log_Stringifier.stringify(listener) + "' class with '" + domainListener.ownerID + "' id",{ fileName : "DomainListenerFactory.hx", lineNumber : 78, className : "hex.ioc.control.DomainListenerFactory", methodName : "build"})); else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException("DomainListenerFactory.build failed. Method named '" + method + "' can't be found in instance of '" + hex_log_Stringifier.stringify(listener) + "' class with '" + domainListener.ownerID + "' id",{ fileName : "DomainListenerFactory.hx", lineNumber : 83, className : "hex.ioc.control.DomainListenerFactory", methodName : "build"}));
 		}
 		return true;
 	} else {
@@ -5988,6 +6256,27 @@ hex_ioc_control_IntFactory.build = function(factoryVO) {
 hex_ioc_control_IntFactory.prototype = {
 	__class__: hex_ioc_control_IntFactory
 };
+var hex_ioc_control_MappingConfigurationFactory = function() {
+};
+$hxClasses["hex.ioc.control.MappingConfigurationFactory"] = hex_ioc_control_MappingConfigurationFactory;
+hex_ioc_control_MappingConfigurationFactory.__name__ = ["hex","ioc","control","MappingConfigurationFactory"];
+hex_ioc_control_MappingConfigurationFactory.build = function(factoryVO) {
+	var constructorVO = factoryVO.constructorVO;
+	var config = new hex_ioc_di_MappingConfiguration();
+	var args = constructorVO["arguments"];
+	if(args.length <= 0) console.log("MappingConfigurationFactory.build(" + Std.string(args) + ") returns an empty congiuration."); else {
+		var _g = 0;
+		while(_g < args.length) {
+			var item = args[_g];
+			++_g;
+			if(item.key != null) config.addMapping(item.key,item.value,item.mapName,item.asSingleton); else console.log("MappingConfigurationFactory.build() adds item with a 'null' key for '" + Std.string(item.value) + "' value.");
+		}
+	}
+	constructorVO.result = config;
+};
+hex_ioc_control_MappingConfigurationFactory.prototype = {
+	__class__: hex_ioc_control_MappingConfigurationFactory
+};
 var hex_ioc_control_NullFactory = function() {
 };
 $hxClasses["hex.ioc.control.NullFactory"] = hex_ioc_control_NullFactory;
@@ -6098,7 +6387,7 @@ hex_ioc_control_XmlFactory.build = function(factoryVO) {
 				constructorVO.result = parser.parse(Xml.parse(source));
 			} catch( error ) {
 				if (error instanceof js__$Boot_HaxeError) error = error.val;
-				throw new js__$Boot_HaxeError(new hex_ioc_error_ParsingException("XmlFactory.build() failed to deserialize XML with '" + factory + "' deserializer class.",{ fileName : "XmlFactory.hx", lineNumber : 49, className : "hex.ioc.control.XmlFactory", methodName : "build"}));
+				throw new js__$Boot_HaxeError(new hex_ioc_error_ParsingException("XmlFactory.build() failed to deserialize XML with '" + factory + "' deserializer class.",{ fileName : "XmlFactory.hx", lineNumber : 47, className : "hex.ioc.control.XmlFactory", methodName : "build"}));
 			}
 		} else {
 			console.log("XmlFactory.build() returns an empty XML.");
@@ -6113,37 +6402,12 @@ hex_ioc_control_XmlFactory.prototype = {
 	__class__: hex_ioc_control_XmlFactory
 };
 var hex_ioc_core_ContextAttributeList = function() {
-	throw new js__$Boot_HaxeError(new hex_error_PrivateConstructorException("'ContextAttributeList' class can't be instantiated.",{ fileName : "ContextAttributeList.hx", lineNumber : 35, className : "hex.ioc.core.ContextAttributeList", methodName : "new"}));
+	throw new js__$Boot_HaxeError(new hex_error_PrivateConstructorException("'ContextAttributeList' class can't be instantiated.",{ fileName : "ContextAttributeList.hx", lineNumber : 36, className : "hex.ioc.core.ContextAttributeList", methodName : "new"}));
 };
 $hxClasses["hex.ioc.core.ContextAttributeList"] = hex_ioc_core_ContextAttributeList;
 hex_ioc_core_ContextAttributeList.__name__ = ["hex","ioc","core","ContextAttributeList"];
 hex_ioc_core_ContextAttributeList.prototype = {
 	__class__: hex_ioc_core_ContextAttributeList
-};
-var hex_ioc_core_IContextFactory = function() { };
-$hxClasses["hex.ioc.core.IContextFactory"] = hex_ioc_core_IContextFactory;
-hex_ioc_core_IContextFactory.__name__ = ["hex","ioc","core","IContextFactory"];
-hex_ioc_core_IContextFactory.prototype = {
-	registerID: null
-	,registerStateTransitionVO: null
-	,buildStateTransition: null
-	,buildAllStateTransitions: null
-	,registerPropertyVO: null
-	,registerConstructorVO: null
-	,buildObject: null
-	,buildAllObjects: null
-	,registerDomainListenerVO: null
-	,assignDomainListener: null
-	,assignAllDomainListeners: null
-	,registerMethodCallVO: null
-	,callMethod: null
-	,callAllMethods: null
-	,callModuleInitialisation: null
-	,getApplicationContext: null
-	,getAnnotationProvider: null
-	,getCoreFactory: null
-	,release: null
-	,__class__: hex_ioc_core_IContextFactory
 };
 var hex_ioc_core_ContextFactory = function(applicationContextName,applicationContextClass) {
 	var domain = hex_domain_DomainUtil.getDomain(applicationContextName,hex_domain_Domain);
@@ -6238,7 +6502,7 @@ hex_ioc_core_ContextFactory.prototype = {
 			var cons = this._constructorVOLocator.locate(id);
 			var args = cons["arguments"];
 			if(args != null) {
-				if(cons.type == "hex.collection.HashMap" || cons.type == "hex.config.stateful.ServiceLocator") {
+				if(cons.type == "hex.collection.HashMap" || cons.type == "hex.config.stateful.ServiceLocator" || cons.type == "hex.ioc.di.MappingConfiguration") {
 					var result = [];
 					var _g = 0;
 					while(_g < args.length) {
@@ -6372,6 +6636,7 @@ hex_ioc_core_ContextFactory.prototype = {
 		this._factoryMap.set("Function",hex_ioc_control_FunctionFactory.build);
 		this._factoryMap.set("Instance",hex_ioc_control_ClassInstanceFactory.build);
 		this._factoryMap.set("StaticVariable",hex_ioc_control_StaticVariableFactory.build);
+		this._factoryMap.set("hex.ioc.di.MappingConfiguration",hex_ioc_control_MappingConfigurationFactory.build);
 		this._coreFactory.addListener(this);
 	}
 	,_build: function(constructorVO,id) {
@@ -6401,17 +6666,6 @@ hex_ioc_core_ContextNameList.prototype = {
 var hex_ioc_core_ContextTypeList = function() { };
 $hxClasses["hex.ioc.core.ContextTypeList"] = hex_ioc_core_ContextTypeList;
 hex_ioc_core_ContextTypeList.__name__ = ["hex","ioc","core","ContextTypeList"];
-var hex_ioc_core_ICoreFactory = function() { };
-$hxClasses["hex.ioc.core.ICoreFactory"] = hex_ioc_core_ICoreFactory;
-hex_ioc_core_ICoreFactory.__name__ = ["hex","ioc","core","ICoreFactory"];
-hex_ioc_core_ICoreFactory.__interfaces__ = [hex_collection_ILocator];
-hex_ioc_core_ICoreFactory.prototype = {
-	getBasicInjector: null
-	,clear: null
-	,buildInstance: null
-	,fastEvalFromTarget: null
-	,__class__: hex_ioc_core_ICoreFactory
-};
 var hex_util_FastEval = function() {
 };
 $hxClasses["hex.util.FastEval"] = hex_util_FastEval;
@@ -6568,7 +6822,7 @@ js_Boot.__isNativeObj = function(o) {
 	return js_Boot.__nativeClassName(o) != null;
 };
 js_Boot.__resolveNativeClass = function(name) {
-	return $global[name];
+	return (Function("return typeof " + name + " != \"undefined\" ? " + name + " : null"))();
 };
 var hex_log_Stringifier = function() {
 	throw new js__$Boot_HaxeError(new hex_error_PrivateConstructorException("Stringifier class can't be instantiated.",{ fileName : "Stringifier.hx", lineNumber : 15, className : "hex.log.Stringifier", methodName : "new"}));
@@ -6928,6 +7182,78 @@ hex_ioc_di_ContextOwnerWrapper.prototype = {
 	}
 	,__class__: hex_ioc_di_ContextOwnerWrapper
 };
+var hex_ioc_di_MappingConfiguration = function() {
+	this._mapping = new hex_collection_HashMap();
+	hex_collection_Locator.call(this);
+};
+$hxClasses["hex.ioc.di.MappingConfiguration"] = hex_ioc_di_MappingConfiguration;
+hex_ioc_di_MappingConfiguration.__name__ = ["hex","ioc","di","MappingConfiguration"];
+hex_ioc_di_MappingConfiguration.__interfaces__ = [hex_config_stateful_IStatefulConfig];
+hex_ioc_di_MappingConfiguration.__super__ = hex_collection_Locator;
+hex_ioc_di_MappingConfiguration.prototype = $extend(hex_collection_Locator.prototype,{
+	_mapping: null
+	,configure: function(injector,dispatcher,module) {
+		var keys = this.keys();
+		var _g = 0;
+		while(_g < keys.length) {
+			var className = keys[_g];
+			++_g;
+			var separatorIndex = className.indexOf("#");
+			var classKey;
+			if(separatorIndex != -1) classKey = Type.resolveClass(HxOverrides.substr(className,separatorIndex + 1,null)); else classKey = Type.resolveClass(className);
+			var helper = this.locate(className);
+			var mapped = helper.value;
+			if(js_Boot.__instanceof(mapped,Class)) {
+				if(helper.isSingleton) injector.mapToSingleton(classKey,mapped,helper.mapName); else injector.mapToType(classKey,mapped,helper.mapName);
+			} else {
+				if(js_Boot.__instanceof(mapped,hex_service_stateful_IStatefulService)) {
+					var serviceDispatcher = mapped.getDispatcher();
+					if(serviceDispatcher != null) serviceDispatcher.add(dispatcher);
+				}
+				injector.mapToValue(classKey,mapped,helper.mapName);
+			}
+			this._mapping.put(classKey,mapped);
+		}
+	}
+	,addMapping: function(type,value,mapName,asSingleton) {
+		if(asSingleton == null) asSingleton = false;
+		if(mapName == null) mapName = "";
+		return this._registerMapping(type,new hex_ioc_di__$MappingConfiguration_Helper(value,mapName,asSingleton),mapName);
+	}
+	,getMapping: function() {
+		return this._mapping;
+	}
+	,_registerMapping: function(type,helper,mapName) {
+		if(mapName == null) mapName = "";
+		var className;
+		className = (mapName != ""?mapName + "#":"") + Type.getClassName(type);
+		return this.register(className,helper);
+	}
+	,_dispatchRegisterEvent: function(key,element) {
+		this._dispatcher.dispatch(hex_collection_LocatorMessage.REGISTER,[key,element]);
+	}
+	,_dispatchUnregisterEvent: function(key) {
+		this._dispatcher.dispatch(hex_collection_LocatorMessage.UNREGISTER,[key]);
+	}
+	,__class__: hex_ioc_di_MappingConfiguration
+});
+var hex_ioc_di__$MappingConfiguration_Helper = function(value,mapName,isSingleton) {
+	if(isSingleton == null) isSingleton = false;
+	this.value = value;
+	this.mapName = mapName;
+	this.isSingleton = isSingleton;
+};
+$hxClasses["hex.ioc.di._MappingConfiguration.Helper"] = hex_ioc_di__$MappingConfiguration_Helper;
+hex_ioc_di__$MappingConfiguration_Helper.__name__ = ["hex","ioc","di","_MappingConfiguration","Helper"];
+hex_ioc_di__$MappingConfiguration_Helper.prototype = {
+	value: null
+	,mapName: null
+	,isSingleton: null
+	,toString: function() {
+		return "Helper( value:" + Std.string(this.value) + ", mapName:" + this.mapName + ", isSingleton:" + Std.string(this.isSingleton) + " )";
+	}
+	,__class__: hex_ioc_di__$MappingConfiguration_Helper
+};
 var hex_ioc_error_BuildingException = function(message,posInfos) {
 	hex_error_Exception.call(this,message,posInfos);
 };
@@ -7137,288 +7463,6 @@ hex_ioc_locator__$StateTransitionVOLocator_StateUnmapper.prototype = {
 	}
 	,__class__: hex_ioc_locator__$StateTransitionVOLocator_StateUnmapper
 };
-var hex_ioc_parser_IParserCollection = function() { };
-$hxClasses["hex.ioc.parser.IParserCollection"] = hex_ioc_parser_IParserCollection;
-hex_ioc_parser_IParserCollection.__name__ = ["hex","ioc","parser","IParserCollection"];
-hex_ioc_parser_IParserCollection.prototype = {
-	next: null
-	,hasNext: null
-	,reset: null
-	,__class__: hex_ioc_parser_IParserCollection
-};
-var hex_ioc_parser_AbstractParserCollection = function() {
-	this._index = -1;
-	this._parserCommandCollection = [];
-	this._buildParserList();
-};
-$hxClasses["hex.ioc.parser.AbstractParserCollection"] = hex_ioc_parser_AbstractParserCollection;
-hex_ioc_parser_AbstractParserCollection.__name__ = ["hex","ioc","parser","AbstractParserCollection"];
-hex_ioc_parser_AbstractParserCollection.__interfaces__ = [hex_ioc_parser_IParserCollection];
-hex_ioc_parser_AbstractParserCollection.prototype = {
-	_index: null
-	,_parserCommandCollection: null
-	,_buildParserList: function() {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".setParserList() must be implemented in concrete class.",{ fileName : "AbstractParserCollection.hx", lineNumber : 23, className : "hex.ioc.parser.AbstractParserCollection", methodName : "_buildParserList"}));
-	}
-	,next: function() {
-		return this._parserCommandCollection[++this._index];
-	}
-	,hasNext: function() {
-		return this._parserCommandCollection.length > this._index + 1;
-	}
-	,reset: function() {
-		this._index = -1;
-	}
-	,__class__: hex_ioc_parser_AbstractParserCollection
-};
-var hex_ioc_parser_IParserCommand = function() { };
-$hxClasses["hex.ioc.parser.IParserCommand"] = hex_ioc_parser_IParserCommand;
-hex_ioc_parser_IParserCommand.__name__ = ["hex","ioc","parser","IParserCommand"];
-hex_ioc_parser_IParserCommand.prototype = {
-	parse: null
-	,setContextData: null
-	,getContextData: null
-	,getApplicationContext: null
-	,getApplicationAssembler: null
-	,setApplicationAssembler: null
-	,__class__: hex_ioc_parser_IParserCommand
-};
-var hex_ioc_parser_AbstractParserCommand = function() {
-	hex_control_async_AsyncCommand.call(this);
-};
-$hxClasses["hex.ioc.parser.AbstractParserCommand"] = hex_ioc_parser_AbstractParserCommand;
-hex_ioc_parser_AbstractParserCommand.__name__ = ["hex","ioc","parser","AbstractParserCommand"];
-hex_ioc_parser_AbstractParserCommand.__interfaces__ = [hex_ioc_parser_IParserCommand];
-hex_ioc_parser_AbstractParserCommand.__super__ = hex_control_async_AsyncCommand;
-hex_ioc_parser_AbstractParserCommand.prototype = $extend(hex_control_async_AsyncCommand.prototype,{
-	_applicationAssembler: null
-	,_contextData: null
-	,execute: function(request) {
-		if(this._contextData != null) this.parse(); else throw new js__$Boot_HaxeError(new hex_error_NullPointerException(Std.string(this) + ".execute() failed. Context data was null.",{ fileName : "AbstractParserCommand.hx", lineNumber : 33, className : "hex.ioc.parser.AbstractParserCommand", methodName : "execute"}));
-	}
-	,setApplicationAssembler: function(applicationAssembler) {
-		this._applicationAssembler = applicationAssembler;
-	}
-	,getApplicationAssembler: function() {
-		return this._applicationAssembler;
-	}
-	,getContextData: function() {
-		return this._contextData;
-	}
-	,parse: function() {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".parse must be implemented in concrete class.",{ fileName : "AbstractParserCommand.hx", lineNumber : 57, className : "hex.ioc.parser.AbstractParserCommand", methodName : "parse"}));
-	}
-	,setContextData: function(data) {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".setContextData must be implemented in concrete class.",{ fileName : "AbstractParserCommand.hx", lineNumber : 62, className : "hex.ioc.parser.AbstractParserCommand", methodName : "setContextData"}));
-	}
-	,getApplicationContext: function(applicationContextClass) {
-		throw new js__$Boot_HaxeError(new hex_error_VirtualMethodException(Std.string(this) + ".getApplicationContext must be implemented in concrete class.",{ fileName : "AbstractParserCommand.hx", lineNumber : 67, className : "hex.ioc.parser.AbstractParserCommand", methodName : "getApplicationContext"}));
-	}
-	,__class__: hex_ioc_parser_AbstractParserCommand
-});
-var hex_ioc_parser_preprocess_MacroPreprocessor = function() {
-};
-$hxClasses["hex.ioc.parser.preprocess.MacroPreprocessor"] = hex_ioc_parser_preprocess_MacroPreprocessor;
-hex_ioc_parser_preprocess_MacroPreprocessor.__name__ = ["hex","ioc","parser","preprocess","MacroPreprocessor"];
-hex_ioc_parser_preprocess_MacroPreprocessor.prototype = {
-	__class__: hex_ioc_parser_preprocess_MacroPreprocessor
-};
-var hex_ioc_parser_xml_AbstractXMLParser = function() {
-	hex_ioc_parser_AbstractParserCommand.call(this);
-};
-$hxClasses["hex.ioc.parser.xml.AbstractXMLParser"] = hex_ioc_parser_xml_AbstractXMLParser;
-hex_ioc_parser_xml_AbstractXMLParser.__name__ = ["hex","ioc","parser","xml","AbstractXMLParser"];
-hex_ioc_parser_xml_AbstractXMLParser.__super__ = hex_ioc_parser_AbstractParserCommand;
-hex_ioc_parser_xml_AbstractXMLParser.prototype = $extend(hex_ioc_parser_AbstractParserCommand.prototype,{
-	getApplicationContext: function(applicationContextClass) {
-		var applicationContextName = this.getXMLContext().firstElement().get("name");
-		if(applicationContextName == null) throw new js__$Boot_HaxeError(new hex_ioc_error_ParsingException(Std.string(this) + " failed to retrieve applicationContext name. You should add 'name' attribute to the root of your xml context",{ fileName : "AbstractXMLParser.hx", lineNumber : 26, className : "hex.ioc.parser.xml.AbstractXMLParser", methodName : "getApplicationContext"}));
-		return this._applicationAssembler.getApplicationContext(applicationContextName,applicationContextClass);
-	}
-	,setContextData: function(data) {
-		if(data != null) {
-			if(js_Boot.__instanceof(data,Xml)) this._contextData = data; else throw new js__$Boot_HaxeError(new hex_error_IllegalArgumentException(Std.string(this) + ".setContext() failed. Data should be an instance of Xml.",{ fileName : "AbstractXMLParser.hx", lineNumber : 44, className : "hex.ioc.parser.xml.AbstractXMLParser", methodName : "setContextData"}));
-		} else throw new js__$Boot_HaxeError(new hex_error_NullPointerException(Std.string(this) + ".setContext() failed. Data was null.",{ fileName : "AbstractXMLParser.hx", lineNumber : 49, className : "hex.ioc.parser.xml.AbstractXMLParser", methodName : "setContextData"}));
-	}
-	,getXMLContext: function() {
-		return this.getContextData();
-	}
-	,__class__: hex_ioc_parser_xml_AbstractXMLParser
-});
-var hex_ioc_parser_xml_ApplicationContextXMLParser = function() {
-	hex_ioc_parser_xml_AbstractXMLParser.call(this);
-};
-$hxClasses["hex.ioc.parser.xml.ApplicationContextXMLParser"] = hex_ioc_parser_xml_ApplicationContextXMLParser;
-hex_ioc_parser_xml_ApplicationContextXMLParser.__name__ = ["hex","ioc","parser","xml","ApplicationContextXMLParser"];
-hex_ioc_parser_xml_ApplicationContextXMLParser.__super__ = hex_ioc_parser_xml_AbstractXMLParser;
-hex_ioc_parser_xml_ApplicationContextXMLParser.prototype = $extend(hex_ioc_parser_xml_AbstractXMLParser.prototype,{
-	parse: function() {
-		var applicationContextClassName = this.getXMLContext().firstElement().get("type");
-		if(applicationContextClassName != null) try {
-			var applicationContextClass = Type.resolveClass(applicationContextClassName);
-			this.getApplicationContext(applicationContextClass);
-		} catch( error ) {
-			if (error instanceof js__$Boot_HaxeError) error = error.val;
-			throw new js__$Boot_HaxeError(new hex_ioc_error_ParsingException(Std.string(this) + " failed to instantiate applicationContext class named '" + applicationContextClassName + "'",{ fileName : "ApplicationContextXMLParser.hx", lineNumber : 32, className : "hex.ioc.parser.xml.ApplicationContextXMLParser", methodName : "parse"}));
-		} else this.getApplicationContext();
-		this._handleComplete();
-	}
-	,__class__: hex_ioc_parser_xml_ApplicationContextXMLParser
-});
-var hex_ioc_parser_xml_ApplicationXMLParser = function(parserCollection) {
-	if(parserCollection != null) this._parserCollection = parserCollection; else this._parserCollection = new hex_ioc_parser_xml_XMLParserCollection();
-};
-$hxClasses["hex.ioc.parser.xml.ApplicationXMLParser"] = hex_ioc_parser_xml_ApplicationXMLParser;
-hex_ioc_parser_xml_ApplicationXMLParser.__name__ = ["hex","ioc","parser","xml","ApplicationXMLParser"];
-hex_ioc_parser_xml_ApplicationXMLParser.prototype = {
-	_contextData: null
-	,_assembler: null
-	,_parserCollection: null
-	,setApplicationAssembler: function(applicationAssembler) {
-		this._assembler = applicationAssembler;
-	}
-	,getApplicationAssembler: function() {
-		return this._contextData;
-	}
-	,setContextData: function(context) {
-		this._contextData = context;
-	}
-	,getContextData: function() {
-		return this._contextData;
-	}
-	,parse: function(applicationAssembler,context) {
-		if(applicationAssembler != null) this.setApplicationAssembler(applicationAssembler); else throw new js__$Boot_HaxeError(new hex_error_NullPointerException(Std.string(this) + ".parse() can't retrieve instance of ApplicationAssembler",{ fileName : "ApplicationXMLParser.hx", lineNumber : 57, className : "hex.ioc.parser.xml.ApplicationXMLParser", methodName : "parse"}));
-		if(context != null) this.setContextData(context); else throw new js__$Boot_HaxeError(new hex_error_NullPointerException(Std.string(this) + ".parse() can't retrieve IoC context data",{ fileName : "ApplicationXMLParser.hx", lineNumber : 66, className : "hex.ioc.parser.xml.ApplicationXMLParser", methodName : "parse"}));
-		if(this._parserCollection == null) this._parserCollection = new hex_ioc_parser_xml_XMLParserCollection();
-		while(this._parserCollection.hasNext()) {
-			var parser = this._parserCollection.next();
-			parser.setContextData(this._contextData);
-			parser.setApplicationAssembler(this._assembler);
-			parser.parse();
-			this._contextData = parser.getContextData();
-		}
-		this._parserCollection.reset();
-	}
-	,__class__: hex_ioc_parser_xml_ApplicationXMLParser
-};
-var hex_ioc_parser_xml_ObjectXMLParser = function() {
-	hex_ioc_parser_xml_AbstractXMLParser.call(this);
-};
-$hxClasses["hex.ioc.parser.xml.ObjectXMLParser"] = hex_ioc_parser_xml_ObjectXMLParser;
-hex_ioc_parser_xml_ObjectXMLParser.__name__ = ["hex","ioc","parser","xml","ObjectXMLParser"];
-hex_ioc_parser_xml_ObjectXMLParser.__super__ = hex_ioc_parser_xml_AbstractXMLParser;
-hex_ioc_parser_xml_ObjectXMLParser.prototype = $extend(hex_ioc_parser_xml_AbstractXMLParser.prototype,{
-	parse: function() {
-		var iterator = this.getXMLContext().firstElement().elements();
-		while(iterator.hasNext()) this._parseNode(iterator.next());
-		this._handleComplete();
-	}
-	,_parseNode: function(xml) {
-		var applicationContext = this.getApplicationContext();
-		var identifier = hex_ioc_parser_xml_XMLAttributeUtil.getID(xml);
-		if(identifier == null) throw new js__$Boot_HaxeError(new hex_ioc_error_ParsingException(Std.string(this) + " encounters parsing error with '" + (function($this) {
-			var $r;
-			if(xml.nodeType != Xml.Element) throw "Bad node type, expected Element but found " + xml.nodeType;
-			$r = xml.nodeName;
-			return $r;
-		}(this)) + "' node. You must set an id attribute.",{ fileName : "ObjectXMLParser.hx", lineNumber : 41, className : "hex.ioc.parser.xml.ObjectXMLParser", methodName : "_parseNode"}));
-		var type;
-		var args;
-		var factory;
-		var singleton;
-		var injectInto;
-		var mapType;
-		var staticRef;
-		var ifList;
-		var ifNotList;
-		type = hex_ioc_parser_xml_XMLAttributeUtil.getType(xml);
-		if(type == "XML") {
-			factory = xml.get("parser-class");
-			args = [new hex_ioc_vo_ConstructorVO(identifier,"String",[xml.firstElement().toString()])];
-			this.getApplicationAssembler().buildObject(applicationContext,identifier,type,args,factory);
-		} else {
-			if(type == "hex.collection.HashMap" || type == "hex.config.stateful.ServiceLocator") args = hex_ioc_parser_xml_XMLParserUtil.getMapArguments(identifier,xml); else args = hex_ioc_parser_xml_XMLParserUtil.getArguments(identifier,xml,type);
-			factory = hex_ioc_parser_xml_XMLAttributeUtil.getFactoryMethod(xml);
-			singleton = hex_ioc_parser_xml_XMLAttributeUtil.getSingletonAccess(xml);
-			injectInto = hex_ioc_parser_xml_XMLAttributeUtil.getInjectInto(xml);
-			mapType = hex_ioc_parser_xml_XMLAttributeUtil.getMapType(xml);
-			staticRef = hex_ioc_parser_xml_XMLAttributeUtil.getStaticRef(xml);
-			ifList = hex_ioc_parser_xml_XMLParserUtil.getIfList(xml);
-			ifNotList = hex_ioc_parser_xml_XMLParserUtil.getIfNotList(xml);
-			if(type == null) if(staticRef != null) type = "StaticVariable"; else type = "String";
-			this.getApplicationAssembler().buildObject(applicationContext,identifier,type,args,factory,singleton,injectInto,mapType,staticRef,ifList,ifNotList);
-			var propertyIterator = xml.elementsNamed("property");
-			while(propertyIterator.hasNext()) {
-				var property = propertyIterator.next();
-				this.getApplicationAssembler().buildProperty(applicationContext,identifier,hex_ioc_parser_xml_XMLAttributeUtil.getName(property),hex_ioc_parser_xml_XMLAttributeUtil.getValue(property),hex_ioc_parser_xml_XMLAttributeUtil.getType(property),hex_ioc_parser_xml_XMLAttributeUtil.getRef(property),hex_ioc_parser_xml_XMLAttributeUtil.getMethod(property),hex_ioc_parser_xml_XMLAttributeUtil.getStaticRef(property),hex_ioc_parser_xml_XMLParserUtil.getIfList(xml),hex_ioc_parser_xml_XMLParserUtil.getIfNotList(xml));
-			}
-			var methodCallIterator = xml.elementsNamed("method-call");
-			while(methodCallIterator.hasNext()) {
-				var methodCallItem = methodCallIterator.next();
-				this.getApplicationAssembler().buildMethodCall(applicationContext,identifier,hex_ioc_parser_xml_XMLAttributeUtil.getName(methodCallItem),hex_ioc_parser_xml_XMLParserUtil.getMethodCallArguments(identifier,methodCallItem),hex_ioc_parser_xml_XMLParserUtil.getIfList(methodCallItem),hex_ioc_parser_xml_XMLParserUtil.getIfNotList(methodCallItem));
-			}
-			var listenIterator = xml.elementsNamed("listen");
-			while(listenIterator.hasNext()) {
-				var listener = listenIterator.next();
-				var channelName = hex_ioc_parser_xml_XMLAttributeUtil.getRef(listener);
-				if(channelName != null) {
-					var listenerArgs = hex_ioc_parser_xml_XMLParserUtil.getEventArguments(listener);
-					this.getApplicationAssembler().buildDomainListener(applicationContext,identifier,channelName,listenerArgs,hex_ioc_parser_xml_XMLParserUtil.getIfList(listener),hex_ioc_parser_xml_XMLParserUtil.getIfNotList(listener));
-				} else throw new js__$Boot_HaxeError(new hex_error_Exception(Std.string(this) + " encounters parsing error with '" + (function($this) {
-					var $r;
-					if(xml.nodeType != Xml.Element) throw "Bad node type, expected Element but found " + xml.nodeType;
-					$r = xml.nodeName;
-					return $r;
-				}(this)) + "' node, 'ref' attribute is mandatory in a 'listen' node.",{ fileName : "ObjectXMLParser.hx", lineNumber : 123, className : "hex.ioc.parser.xml.ObjectXMLParser", methodName : "_parseNode"}));
-			}
-		}
-	}
-	,__class__: hex_ioc_parser_xml_ObjectXMLParser
-});
-var hex_ioc_parser_xml_StateXMLParser = function() {
-	hex_ioc_parser_xml_AbstractXMLParser.call(this);
-};
-$hxClasses["hex.ioc.parser.xml.StateXMLParser"] = hex_ioc_parser_xml_StateXMLParser;
-hex_ioc_parser_xml_StateXMLParser.__name__ = ["hex","ioc","parser","xml","StateXMLParser"];
-hex_ioc_parser_xml_StateXMLParser.__super__ = hex_ioc_parser_xml_AbstractXMLParser;
-hex_ioc_parser_xml_StateXMLParser.prototype = $extend(hex_ioc_parser_xml_AbstractXMLParser.prototype,{
-	parse: function() {
-		var iterator = this.getXMLContext().firstElement().elementsNamed("state");
-		while(iterator.hasNext()) {
-			var node = iterator.next();
-			this._parseNode(node);
-			this.getXMLContext().firstElement().removeChild(node);
-		}
-		this._handleComplete();
-	}
-	,_parseNode: function(xml) {
-		var applicationContext = this.getApplicationContext();
-		var applicationAssembler = this.getApplicationAssembler();
-		var identifier = hex_ioc_parser_xml_XMLAttributeUtil.getID(xml);
-		if(identifier == null) throw new js__$Boot_HaxeError(new hex_ioc_error_ParsingException(Std.string(this) + " encounters parsing error with '" + (function($this) {
-			var $r;
-			if(xml.nodeType != Xml.Element) throw "Bad node type, expected Element but found " + xml.nodeType;
-			$r = xml.nodeName;
-			return $r;
-		}(this)) + "' node. You must set an id attribute.",{ fileName : "StateXMLParser.hx", lineNumber : 41, className : "hex.ioc.parser.xml.StateXMLParser", methodName : "_parseNode"}));
-		var staticReference = hex_ioc_parser_xml_XMLAttributeUtil.getStaticRef(xml);
-		var instanceReference = hex_ioc_parser_xml_XMLAttributeUtil.getRef(xml);
-		var enterListIterator = xml.elementsNamed("enter");
-		var enterList = [];
-		while(enterListIterator.hasNext()) {
-			var enterListItem = enterListIterator.next();
-			enterList.push(new hex_ioc_vo_CommandMappingVO(hex_ioc_parser_xml_XMLAttributeUtil.getCommandClass(enterListItem),hex_ioc_parser_xml_XMLAttributeUtil.getFireOnce(enterListItem),hex_ioc_parser_xml_XMLAttributeUtil.getContextOwner(enterListItem)));
-		}
-		var exitListIterator = xml.elementsNamed("exit");
-		var exitList = [];
-		while(exitListIterator.hasNext()) {
-			var exitListItem = exitListIterator.next();
-			exitList.push(new hex_ioc_vo_CommandMappingVO(hex_ioc_parser_xml_XMLAttributeUtil.getCommandClass(exitListItem),hex_ioc_parser_xml_XMLAttributeUtil.getFireOnce(exitListItem),hex_ioc_parser_xml_XMLAttributeUtil.getContextOwner(exitListItem)));
-		}
-		applicationAssembler.configureStateTransition(applicationContext,identifier,staticReference,instanceReference,enterList,exitList);
-	}
-	,__class__: hex_ioc_parser_xml_StateXMLParser
-});
 var hex_ioc_parser_xml_XMLAttributeUtil = function() {
 	throw new js__$Boot_HaxeError(new hex_error_PrivateConstructorException("'XMLAttributeUtil' class can't be instantiated.",{ fileName : "XMLAttributeUtil.hx", lineNumber : 14, className : "hex.ioc.parser.xml.XMLAttributeUtil", methodName : "new"}));
 };
@@ -7466,6 +7510,9 @@ hex_ioc_parser_xml_XMLAttributeUtil.getMapType = function(xml) {
 hex_ioc_parser_xml_XMLAttributeUtil.getMapName = function(xml) {
 	return xml.get("map-name");
 };
+hex_ioc_parser_xml_XMLAttributeUtil.getAsSingleton = function(xml) {
+	return xml.get("as-singleton") == "true";
+};
 hex_ioc_parser_xml_XMLAttributeUtil.getStaticRef = function(xml) {
 	return xml.get("static-ref");
 };
@@ -7487,20 +7534,6 @@ hex_ioc_parser_xml_XMLAttributeUtil.getIfNot = function(xml) {
 hex_ioc_parser_xml_XMLAttributeUtil.prototype = {
 	__class__: hex_ioc_parser_xml_XMLAttributeUtil
 };
-var hex_ioc_parser_xml_XMLParserCollection = function() {
-	hex_ioc_parser_AbstractParserCollection.call(this);
-};
-$hxClasses["hex.ioc.parser.xml.XMLParserCollection"] = hex_ioc_parser_xml_XMLParserCollection;
-hex_ioc_parser_xml_XMLParserCollection.__name__ = ["hex","ioc","parser","xml","XMLParserCollection"];
-hex_ioc_parser_xml_XMLParserCollection.__super__ = hex_ioc_parser_AbstractParserCollection;
-hex_ioc_parser_xml_XMLParserCollection.prototype = $extend(hex_ioc_parser_AbstractParserCollection.prototype,{
-	_buildParserList: function() {
-		this._parserCommandCollection.push(new hex_ioc_parser_xml_ApplicationContextXMLParser());
-		this._parserCommandCollection.push(new hex_ioc_parser_xml_StateXMLParser());
-		this._parserCommandCollection.push(new hex_ioc_parser_xml_ObjectXMLParser());
-	}
-	,__class__: hex_ioc_parser_xml_XMLParserCollection
-});
 var hex_ioc_parser_xml_XMLParserUtil = function() {
 };
 $hxClasses["hex.ioc.parser.xml.XMLParserUtil"] = hex_ioc_parser_xml_XMLParserUtil;
@@ -7547,7 +7580,6 @@ hex_ioc_parser_xml_XMLParserUtil.getEventArguments = function(xml) {
 	while(iterator.hasNext()) {
 		var item = iterator.next();
 		var domainListenerVOArguments = new hex_ioc_vo_DomainListenerVOArguments();
-		domainListenerVOArguments.name = item.get("name");
 		domainListenerVOArguments.staticRef = item.get("static-ref");
 		domainListenerVOArguments.method = item.get("method");
 		domainListenerVOArguments.strategy = item.get("strategy");
@@ -7566,7 +7598,7 @@ hex_ioc_parser_xml_XMLParserUtil.getMapArguments = function(ownerID,xml) {
 		if(keyList.hasNext()) {
 			var key = hex_ioc_parser_xml_XMLParserUtil._getAttributes(keyList.next());
 			var value = hex_ioc_parser_xml_XMLParserUtil._getAttributes(valueList.next());
-			args.push(new hex_ioc_vo_MapVO(hex_ioc_parser_xml_XMLParserUtil._getConstructorVO(ownerID,key),hex_ioc_parser_xml_XMLParserUtil._getConstructorVO(ownerID,value),hex_ioc_parser_xml_XMLAttributeUtil.getMapName(item)));
+			args.push(new hex_ioc_vo_MapVO(hex_ioc_parser_xml_XMLParserUtil._getConstructorVO(ownerID,key),hex_ioc_parser_xml_XMLParserUtil._getConstructorVO(ownerID,value),hex_ioc_parser_xml_XMLAttributeUtil.getMapName(item),hex_ioc_parser_xml_XMLAttributeUtil.getAsSingleton(item)));
 		}
 	}
 	return args;
@@ -7591,9 +7623,6 @@ hex_ioc_parser_xml_XMLParserUtil.getIfNotList = function(xml) {
 hex_ioc_parser_xml_XMLParserUtil.prototype = {
 	__class__: hex_ioc_parser_xml_XMLParserUtil
 };
-var hex_ioc_parser_xml_XmlReader = function() { };
-$hxClasses["hex.ioc.parser.xml.XmlReader"] = hex_ioc_parser_xml_XmlReader;
-hex_ioc_parser_xml_XmlReader.__name__ = ["hex","ioc","parser","xml","XmlReader"];
 var hex_ioc_vo_CommandMappingVO = function(commandClassName,fireOnce,contextOwner) {
 	if(fireOnce == null) fireOnce = false;
 	this.commandClassName = commandClassName;
@@ -7651,10 +7680,9 @@ hex_ioc_vo_DomainListenerVO.prototype = {
 	,'arguments': null
 	,__class__: hex_ioc_vo_DomainListenerVO
 };
-var hex_ioc_vo_DomainListenerVOArguments = function(name,staticRef,method,strategy,injectedInModule) {
+var hex_ioc_vo_DomainListenerVOArguments = function(staticRef,method,strategy,injectedInModule) {
 	if(injectedInModule == null) injectedInModule = false;
 	this.injectedInModule = false;
-	this.name = name;
 	this.staticRef = staticRef;
 	this.method = method;
 	this.strategy = strategy;
@@ -7663,8 +7691,7 @@ var hex_ioc_vo_DomainListenerVOArguments = function(name,staticRef,method,strate
 $hxClasses["hex.ioc.vo.DomainListenerVOArguments"] = hex_ioc_vo_DomainListenerVOArguments;
 hex_ioc_vo_DomainListenerVOArguments.__name__ = ["hex","ioc","vo","DomainListenerVOArguments"];
 hex_ioc_vo_DomainListenerVOArguments.prototype = {
-	name: null
-	,staticRef: null
+	staticRef: null
 	,method: null
 	,strategy: null
 	,injectedInModule: null
@@ -7682,10 +7709,13 @@ hex_ioc_vo_FactoryVO.prototype = {
 	,moduleLocator: null
 	,__class__: hex_ioc_vo_FactoryVO
 };
-var hex_ioc_vo_MapVO = function(key,value,mapName) {
+var hex_ioc_vo_MapVO = function(key,value,mapName,asSingleton) {
+	if(asSingleton == null) asSingleton = false;
+	this.asSingleton = false;
 	this._key = key;
 	this._value = value;
 	this.mapName = mapName;
+	this.asSingleton = asSingleton;
 };
 $hxClasses["hex.ioc.vo.MapVO"] = hex_ioc_vo_MapVO;
 hex_ioc_vo_MapVO.__name__ = ["hex","ioc","vo","MapVO"];
@@ -7695,6 +7725,7 @@ hex_ioc_vo_MapVO.prototype = {
 	,key: null
 	,value: null
 	,mapName: null
+	,asSingleton: null
 	,getPropertyKey: function() {
 		return this._key;
 	}
@@ -8454,21 +8485,6 @@ hex_metadata__$AnnotationProvider_InstanceVO.prototype = {
 	,metaDataValue: null
 	,__class__: hex_metadata__$AnnotationProvider_InstanceVO
 };
-var hex_model_Model = function() {
-};
-$hxClasses["hex.model.Model"] = hex_model_Model;
-hex_model_Model.__name__ = ["hex","model","Model"];
-hex_model_Model.__interfaces__ = [hex_model_IModelRO];
-hex_model_Model.prototype = {
-	dispatcher: null
-	,addListener: function(listener) {
-		this.dispatcher.addListener(listener);
-	}
-	,removeListener: function(listener) {
-		this.dispatcher.removeListener(listener);
-	}
-	,__class__: hex_model_Model
-};
 var hex_module_ModuleMessage = function() {
 };
 $hxClasses["hex.module.ModuleMessage"] = hex_module_ModuleMessage;
@@ -8480,9 +8496,9 @@ var hex_module_dependency_IRuntimeDependencies = function() { };
 $hxClasses["hex.module.dependency.IRuntimeDependencies"] = hex_module_dependency_IRuntimeDependencies;
 hex_module_dependency_IRuntimeDependencies.__name__ = ["hex","module","dependency","IRuntimeDependencies"];
 hex_module_dependency_IRuntimeDependencies.prototype = {
-	hasServiceDependencies: null
-	,addServiceDependencies: null
-	,getServiceDependencies: null
+	hasMappedDependencies: null
+	,addMappedDependencies: null
+	,getMappedDependencies: null
 	,__class__: hex_module_dependency_IRuntimeDependencies
 };
 var hex_module_dependency_RuntimeDependencies = function() {
@@ -8491,16 +8507,16 @@ $hxClasses["hex.module.dependency.RuntimeDependencies"] = hex_module_dependency_
 hex_module_dependency_RuntimeDependencies.__name__ = ["hex","module","dependency","RuntimeDependencies"];
 hex_module_dependency_RuntimeDependencies.__interfaces__ = [hex_module_dependency_IRuntimeDependencies];
 hex_module_dependency_RuntimeDependencies.prototype = {
-	_serviceDependencies: null
-	,addServiceDependencies: function(serviceDependencies) {
-		if(this._serviceDependencies == null) this._serviceDependencies = [];
-		this._serviceDependencies = this._serviceDependencies.concat(serviceDependencies);
+	_mappedDependencies: null
+	,addMappedDependencies: function(serviceDependencies) {
+		if(this._mappedDependencies == null) this._mappedDependencies = [];
+		this._mappedDependencies = this._mappedDependencies.concat(serviceDependencies);
 	}
-	,getServiceDependencies: function() {
-		return this._serviceDependencies;
+	,getMappedDependencies: function() {
+		return this._mappedDependencies;
 	}
-	,hasServiceDependencies: function() {
-		return this._serviceDependencies != null;
+	,hasMappedDependencies: function() {
+		return this._mappedDependencies != null;
 	}
 	,__class__: hex_module_dependency_RuntimeDependencies
 };
@@ -8510,11 +8526,11 @@ var hex_module_dependency_RuntimeDependencyChecker = function() {
 $hxClasses["hex.module.dependency.RuntimeDependencyChecker"] = hex_module_dependency_RuntimeDependencyChecker;
 hex_module_dependency_RuntimeDependencyChecker.__name__ = ["hex","module","dependency","RuntimeDependencyChecker"];
 hex_module_dependency_RuntimeDependencyChecker.check = function(module,injector,dependencies) {
-	if(dependencies.hasServiceDependencies()) {
-		var serviceDependencies = dependencies.getServiceDependencies();
+	if(dependencies.hasMappedDependencies()) {
+		var mappedDependencies = dependencies.getMappedDependencies();
 		var _g = 0;
-		while(_g < serviceDependencies.length) {
-			var dependency = serviceDependencies[_g];
+		while(_g < mappedDependencies.length) {
+			var dependency = mappedDependencies[_g];
 			++_g;
 			if(!injector.hasMapping(dependency)) throw new js__$Boot_HaxeError(new hex_module_dependency_RuntimeDependencyException("'" + Std.string(dependency) + "' class dependency is not available during '" + hex_log_Stringifier.stringify(module) + "' initialisation.",{ fileName : "RuntimeDependencyChecker.hx", lineNumber : 30, className : "hex.module.dependency.RuntimeDependencyChecker", methodName : "check"}));
 		}
@@ -8532,6 +8548,19 @@ hex_module_dependency_RuntimeDependencyException.__super__ = hex_error_Exception
 hex_module_dependency_RuntimeDependencyException.prototype = $extend(hex_error_Exception.prototype,{
 	__class__: hex_module_dependency_RuntimeDependencyException
 });
+var hex_service_IService = function() { };
+$hxClasses["hex.service.IService"] = hex_service_IService;
+hex_service_IService.__name__ = ["hex","service","IService"];
+hex_service_IService.__interfaces__ = [hex_event_IObservable];
+hex_service_IService.prototype = {
+	createConfiguration: null
+	,addHandler: null
+	,removeHandler: null
+	,getConfiguration: null
+	,setConfiguration: null
+	,removeAllListeners: null
+	,__class__: hex_service_IService
+};
 var hex_service_ServiceConfiguration = function(timeout) {
 	if(timeout == null) timeout = 5000;
 	this.serviceTimeout = timeout;
@@ -8562,20 +8591,6 @@ hex_service_stateful_IStatefulService.prototype = {
 	inUse: null
 	,getDispatcher: null
 	,__class__: hex_service_stateful_IStatefulService
-};
-var hex_service_stateless_AsyncStatelessServiceMessage = function() {
-};
-$hxClasses["hex.service.stateless.AsyncStatelessServiceMessage"] = hex_service_stateless_AsyncStatelessServiceMessage;
-hex_service_stateless_AsyncStatelessServiceMessage.__name__ = ["hex","service","stateless","AsyncStatelessServiceMessage"];
-hex_service_stateless_AsyncStatelessServiceMessage.prototype = {
-	__class__: hex_service_stateless_AsyncStatelessServiceMessage
-};
-var hex_service_stateless_StatelessServiceMessage = function() {
-};
-$hxClasses["hex.service.stateless.StatelessServiceMessage"] = hex_service_stateless_StatelessServiceMessage;
-hex_service_stateless_StatelessServiceMessage.__name__ = ["hex","service","stateless","StatelessServiceMessage"];
-hex_service_stateless_StatelessServiceMessage.prototype = {
-	__class__: hex_service_stateless_StatelessServiceMessage
 };
 var hex_service_stateless_http_IHTTPServiceParameterFactory = function() { };
 $hxClasses["hex.service.stateless.http.IHTTPServiceParameterFactory"] = hex_service_stateless_http_IHTTPServiceParameterFactory;
@@ -9199,22 +9214,11 @@ hex_config_stateless_StatelessModuleConfig.__meta__ = { obj : { 'hex.di.IInjecto
 example_module_gallery__$GalleryModule_GalleryModuleConfig.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"injector\",\"type\":\"hex.di.IDependencyInjector\",\"key\":\"\"}],\"name\":\"example.module.gallery.GalleryModule\",\"methods\":[]}"]}};
 hex_control_controller_Controller.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"module\",\"type\":\"hex.module.IModule\",\"key\":\"\"},{\"isOpt\":false,\"name\":\"injector\",\"type\":\"hex.di.IDependencyInjector\",\"key\":\"\"}],\"name\":\"hex.control.controller.Controller\",\"methods\":[]}"]}};
 example_module_gallery_controller_GalleryController.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"module\",\"type\":\"hex.module.IModule\",\"key\":\"\"},{\"isOpt\":false,\"name\":\"injector\",\"type\":\"hex.di.IDependencyInjector\",\"key\":\"\"}],\"name\":\"example.module.gallery.controller.GalleryController\",\"methods\":[]}"]}};
-example_module_gallery_controller_LoadPhotosCommand.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"photosService\",\"type\":\"example.module.gallery.service.IGetPhotosService\",\"key\":\"\"},{\"isOpt\":false,\"name\":\"galleryModel\",\"type\":\"example.module.gallery.model.IGalleryModel\",\"key\":\"\"}],\"name\":\"example.module.gallery.controller.LoadPhotosCommand\",\"methods\":[]}"]}};
+example_module_gallery_controller_LoadPhotosOrder.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"photosService\",\"type\":\"example.module.gallery.service.IGetPhotosService\",\"key\":\"\"}],\"name\":\"example.module.gallery.controller.LoadPhotosOrder\",\"methods\":[]}"]}};
 hex_view_viewhelper_ViewHelper.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"dispatcher\",\"type\":\"hex.event.IDispatcher\",\"key\":\"\"}],\"name\":\"hex.view.viewhelper.ViewHelper\",\"methods\":[]}"]}};
 hex_view_viewhelper_ViewHelper.DEFAULT_VISIBLE = true;
 example_module_gallery_view_GalleryViewHelper.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"dispatcher\",\"type\":\"hex.event.IDispatcher\",\"key\":\"\"},{\"isOpt\":false,\"name\":\"_model\",\"type\":\"example.module.gallery.model.IGalleryModelRO\",\"key\":\"\"},{\"isOpt\":false,\"name\":\"_controller\",\"type\":\"example.module.gallery.controller.IGalleryController\",\"key\":\"\"}],\"name\":\"example.module.gallery.view.GalleryViewHelper\",\"methods\":[]}"]}};
-hex_service_AbstractService.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[],\"name\":\"hex.service.AbstractService\",\"methods\":[]}"]}, fields : { createConfiguration : { postConstruct : null}}};
-hex_service_stateless_StatelessService.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[],\"name\":\"hex.service.stateless.StatelessService\",\"methods\":[]}"]}};
-hex_service_stateless_StatelessService.WAS_NEVER_USED = "WAS_NEVER_USED";
-hex_service_stateless_StatelessService.IS_RUNNING = "IS_RUNNING";
-hex_service_stateless_StatelessService.IS_COMPLETED = "IS_COMPLETED";
-hex_service_stateless_StatelessService.IS_FAILED = "IS_FAILED";
-hex_service_stateless_StatelessService.IS_CANCELLED = "IS_CANCELLED";
-hex_service_stateless_AsyncStatelessService.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[],\"name\":\"hex.service.stateless.AsyncStatelessService\",\"methods\":[]}"]}};
-hex_service_stateless_AsyncStatelessService.HAS_TIMEOUT = "HAS_TIMEOUT";
-hex_service_stateless_AsyncStatelessService._POOL = new hex_collection_HashMap();
-hex_service_stateless_http_HTTPService.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[],\"name\":\"hex.service.stateless.http.HTTPService\",\"methods\":[]}"]}};
-example_service_flickr_FlickrGetPhotos.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[],\"name\":\"example.service.flickr.FlickrGetPhotos\",\"methods\":[{\"args\":[],\"isPre\":false,\"name\":\"createConfiguration\",\"isPost\":true,\"order\":0}]}"]}};
+hex_order_HttpOrder._POOL = new hex_collection_HashMap();
 haxe_ds_ObjectMap.count = 0;
 haxe_xml_Parser.escapes = (function($this) {
 	var $r;
@@ -9229,9 +9233,8 @@ haxe_xml_Parser.escapes = (function($this) {
 }(this));
 hex_collection_LocatorMessage.REGISTER = new hex_event_MessageType("onRegister");
 hex_collection_LocatorMessage.UNREGISTER = new hex_event_MessageType("onUnregister");
+hex_compiler_core_CompileTimeCoreFactory._fastEvalMethod = hex_compiler_CompileTimeFastEval.fromTarget;
 hex_compiler_parser_xml_ClassImportHelper._primType = ["String","Int","UInt","Float","Bool","null","Object","XML","Class","Function","Array"];
-hex_compiler_parser_xml_XmlContextReader._includeMatcher = new EReg("<include.*?file=(\"|')([^\"']+)\\1.*?(?:(?:/>)|(?:>[\\W\\w\t\r\n]*?</include *>))","g");
-hex_compiler_parser_xml_XmlContextReader._headerMatcher = new EReg("((?:<\\?xml[^>]+>\\s*)<([a-zA-Z0-9-_:]+)[^>]*>[\r\n]?)([\\s\\S]*)</\\2\\s*>","");
 hex_control_async_AsyncCommand.WAS_NEVER_USED = "WAS_NEVER_USED";
 hex_control_async_AsyncCommand.IS_RUNNING = "IS_RUNNING";
 hex_control_async_AsyncCommand.IS_COMPLETED = "IS_COMPLETED";
@@ -9278,6 +9281,7 @@ hex_ioc_core_ContextAttributeList.PARSER_CLASS = "parser-class";
 hex_ioc_core_ContextAttributeList.LOCATOR = "locator";
 hex_ioc_core_ContextAttributeList.MAP_TYPE = "map-type";
 hex_ioc_core_ContextAttributeList.MAP_NAME = "map-name";
+hex_ioc_core_ContextAttributeList.AS_SINGLETON = "as-singleton";
 hex_ioc_core_ContextAttributeList.STRATEGY = "strategy";
 hex_ioc_core_ContextAttributeList.INJECTED_IN_MODULE = "injectedInModule";
 hex_ioc_core_ContextAttributeList.STATIC_REF = "static-ref";
@@ -9302,6 +9306,7 @@ hex_ioc_core_ContextTypeList.ARRAY = "Array";
 hex_ioc_core_ContextTypeList.BOOLEAN = "Bool";
 hex_ioc_core_ContextTypeList.INSTANCE = "Instance";
 hex_ioc_core_ContextTypeList.STATIC_VARIABLE = "StaticVariable";
+hex_ioc_core_ContextTypeList.MAPPING_CONFIG = "hex.ioc.di.MappingConfiguration";
 hex_ioc_core_ContextTypeList.INT = "Int";
 hex_ioc_core_ContextTypeList.NULL = "null";
 hex_ioc_core_ContextTypeList.FLOAT = "Float";
@@ -9323,8 +9328,6 @@ hex_log_LogLevel._ERROR = new hex_log_LogLevel(40000);
 hex_log_LogLevel._FATAL = new hex_log_LogLevel(50000);
 hex_log_LogLevel._OFF = new hex_log_LogLevel(60000);
 hex_ioc_core_CoreFactory._fastEvalMethod = hex_util_FastEval.fromTarget;
-hex_ioc_parser_AbstractParserCommand.__meta__ = { fields : { execute : { 'final' : null}, setApplicationAssembler : { 'final' : null}, getApplicationAssembler : { 'final' : null}, getContextData : { 'final' : null}}};
-hex_ioc_parser_xml_AbstractXMLParser.__meta__ = { fields : { getApplicationContext : { 'final' : null}, setContextData : { 'final' : null}, getXMLContext : { 'final' : null}}};
 hex_log_LoggerMessage.LOG = new hex_event_MessageType("onLog");
 hex_log_LoggerMessage.CLEAR = new hex_event_MessageType("onClear");
 hex_log_layout_LogLayoutHTMLView.TAP_THRESHOLD = 250;
@@ -9340,10 +9343,6 @@ hex_metadata_AnnotationProvider._Domains = new haxe_ds_ObjectMap();
 hex_metadata_AnnotationProvider._META_DATA = new hex_collection_HashMap();
 hex_module_ModuleMessage.INITIALIZED = new hex_event_MessageType("onModuleInitialisation");
 hex_module_ModuleMessage.RELEASED = new hex_event_MessageType("onModuleRelease");
-hex_service_stateless_AsyncStatelessServiceMessage.TIMEOUT = new hex_event_MessageType("onServiceTimeout");
-hex_service_stateless_StatelessServiceMessage.COMPLETE = new hex_event_MessageType("onServiceComplete");
-hex_service_stateless_StatelessServiceMessage.FAIL = new hex_event_MessageType("onServiceFail");
-hex_service_stateless_StatelessServiceMessage.CANCEL = new hex_event_MessageType("onServiceCancel");
 hex_state_control_StateChangeMacro.__meta__ = { obj : { 'hex.di.IInjectorContainer' : ["{\"ctor\":{\"args\":[],\"isPre\":false,\"name\":\"new\",\"isPost\":false,\"order\":0},\"props\":[{\"isOpt\":false,\"name\":\"macroExecutor\",\"type\":\"hex.control.macro.IMacroExecutor\",\"key\":\"\"}],\"name\":\"hex.state.control.StateChangeMacro\",\"methods\":[]}"]}};
 hex_view_viewhelper_MainViewHelperManagerMessage.VIEW_HELPER_MANAGER_CREATION = new hex_event_MessageType("onViewHelperManagerCreation");
 hex_view_viewhelper_MainViewHelperManagerMessage.VIEW_HELPER_MANAGER_RELEASE = new hex_event_MessageType("onViewHelperManagerRelease");
@@ -9356,6 +9355,6 @@ hex_view_viewhelper_ViewHelperMessage.RELEASE = new hex_event_MessageType("onRel
 hex_view_viewhelper_ViewHelperMessage.ATTACH_VIEW = new hex_event_MessageType("onAttachView");
 hex_view_viewhelper_ViewHelperMessage.REMOVE_VIEW = new hex_event_MessageType("onRemoveView");
 example_FlickrExample.main();
-})(typeof console != "undefined" ? console : {log:function(){}}, typeof window != "undefined" ? window : exports, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
+})(typeof console != "undefined" ? console : {log:function(){}}, typeof window != "undefined" ? window : exports);
 
 //# sourceMappingURL=Main.js.map

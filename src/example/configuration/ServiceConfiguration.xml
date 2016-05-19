@@ -3,7 +3,7 @@
 	<config id="flickerServiceLocator" type="hex.ioc.di.MappingConfiguration" >
 		<item> 
 			<key type="Class" value="example.module.gallery.service.IGetPhotosService"/>
-			<value type="Class" value="example.service.flickr.FlickrGetPhotos"/>
+			<value type="Class" value="example.service.flickr.FlickrService"/>
 		</item>
 	</config>
 </root>
