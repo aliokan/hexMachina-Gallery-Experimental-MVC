@@ -1,2 +1,2 @@
 # hexMachina-GalleryExample
-Eample application for hexMachina framework of a Flickr gallery
+Example application for hexMachina framework of a Flickr gallery ( with ICompletable API )
