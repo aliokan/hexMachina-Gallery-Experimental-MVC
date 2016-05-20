@@ -2,40 +2,43 @@ package example.module.gallery.model;
 
 import example.module.gallery.model.IGalleryModelListener;
 import example.module.gallery.vo.PhotoVO;
+import hex.model.Model;
+import hex.model.ModelDispatcher;
 
 /**
  * ...
  * @author Andrei Bunulu
  */
-class GalleryModel implements IGalleryModel
+class GalleryModel extends Model<GalleryModelDispatcher, IGalleryModelListener> implements IGalleryModel
 {
 	var _photos : Array<PhotoVO>;
 	
-	public var dispatcher : GalleryModelDispatcher;
-	
 	public function new() 
 	{
-		dispatcher = new GalleryModelDispatcher();
+		this.dispatcher = new GalleryModelDispatcher();
 	}
 	
 	public function setPhotos( photos : Array<PhotoVO> ) : Void 
 	{
 		this._photos = photos;
-		dispatcher.onPhotosLoaded( this._photos );
+		this.dispatcher.onPhotosLoaded( this._photos );
 	}
 	
 	public function getPhotos() : Array<PhotoVO> 
 	{
 		return this._photos;
 	}
-	
-	public function addListener( listener : IGalleryModelListener ) : Void
-	{
-		this.dispatcher.addListener( listener );
-	}
+}
 
-	public function removeListener( listener : IGalleryModelListener ) : Void
+private class GalleryModelDispatcher extends ModelDispatcher<IGalleryModelListener> implements IGalleryModelListener
+{
+	public function new() 
 	{
-		this.dispatcher.removeListener( listener );
+		super();
+	}
+	
+	public function onPhotosLoaded( photos : Array<PhotoVO> ) : Void
+	{
+		//Method will be implemented @compile time by macro
 	}
 }
