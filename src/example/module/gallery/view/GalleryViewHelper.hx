@@ -26,7 +26,7 @@ class GalleryViewHelper extends ViewHelper implements IGalleryModelListener
 		
 	}
 	
-	override function _initialize():Void 
+	override function _initialize() : Void 
 	{
 		super._initialize();
 		
@@ -40,5 +40,4 @@ class GalleryViewHelper extends ViewHelper implements IGalleryModelListener
 		this.getLogger().info( "onPhotosLoaded" );
 		this._layoutView.setPhotos( photos );
 	}
-	
 }

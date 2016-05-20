@@ -13,7 +13,7 @@ class FlickrExample
 	static var self : FlickrExample;
 
 	static public function main() : Void
-	{
+	{trace("yo");
 		#if debug
 		var proxy : LogProxyLayout = new LogProxyLayout();
 		#if js

@@ -11,14 +11,14 @@ class GalleryModel implements IGalleryModel
 {
 	var _photos : Array<PhotoVO>;
 	
-	public var dispatcher:GalleryModelDispatcher;
+	public var dispatcher : GalleryModelDispatcher;
 	
 	public function new() 
 	{
 		dispatcher = new GalleryModelDispatcher();
 	}
 	
-	public function setPhotos(photos:Array<PhotoVO>):Void 
+	public function setPhotos( photos : Array<PhotoVO> ) : Void 
 	{
 		this._photos = photos;
 		dispatcher.onPhotosLoaded( this._photos );

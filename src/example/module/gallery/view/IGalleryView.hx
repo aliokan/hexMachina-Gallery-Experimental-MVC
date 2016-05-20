@@ -1,7 +1,7 @@
 package example.module.gallery.view;
 
-import hex.view.IView;
 import example.module.gallery.vo.PhotoVO;
+import hex.view.IView;
 
 /**
  * @author Andrei Bunulu

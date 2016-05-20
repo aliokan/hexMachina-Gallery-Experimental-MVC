@@ -20,12 +20,14 @@ class FlickrParser implements IParser<Array<PhotoVO>>
 		jsonString = jsonString.substr(14);
 		jsonString = jsonString.substr(0, -1);
 		var json = haxe.Json.parse( jsonString );
+		
+		var photosList = new Array<PhotoVO>();
 
 		for ( n in Reflect.fields( json.photos.photo ) )
 		{
 			var photo = Reflect.field( json.photos.photo, n );
 			var url = "https://farm" + photo.farm + ".staticflickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_b.jpg";
-			photosList.push( new PhotoVO(url, photo.title) );
+			photosList.push( new PhotoVO( url, photo.title ) );
 		}
 		
 		return photosList;

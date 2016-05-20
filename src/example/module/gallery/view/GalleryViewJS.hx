@@ -1,11 +1,10 @@
 package example.module.gallery.view;
 
+import example.module.gallery.vo.PhotoVO;
 import hex.log.Logger;
 import js.html.DOMElement;
-import example.module.gallery.vo.PhotoVO;
 import js.html.Image;
 import js.html.ImageElement;
-
 
 /**
  * ...
@@ -13,17 +12,16 @@ import js.html.ImageElement;
  */
 class GalleryViewJS implements IGalleryView
 {
+	var _layout : DOMElement;
 	
-	var _layout:DOMElement;
-	
-	public function new( layout:DOMElement ) 
+	public function new( layout : DOMElement ) 
 	{
 		this._layout = layout;
 	}
 	
 	public function setPhotos( photos : Array<PhotoVO> ) : Void
 	{
-		Logger.DEBUG(photos);
+		Logger.DEBUG( photos );
 		
 		for ( photo in photos)
 		{
@@ -33,20 +31,17 @@ class GalleryViewJS implements IGalleryView
 			
 			this._layout.appendChild(img);
 		}
-		
-		
 	}
 	
-	@:isVar public var visible(get, set):Bool;
+	@:isVar public var visible( get, set ) : Bool;
 	
-	function get_visible():Bool 
+	function get_visible() : Bool 
 	{
 		return visible;
 	}
 	
-	function set_visible(value:Bool):Bool 
+	function set_visible( value : Bool ) : Bool 
 	{
 		return visible = value;
 	}
-	
 }

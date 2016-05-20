@@ -1376,7 +1376,7 @@ example_module_gallery_view_GalleryViewJS.__interfaces__ = [example_module_galle
 example_module_gallery_view_GalleryViewJS.prototype = {
 	_layout: null
 	,setPhotos: function(photos) {
-		hex_log_Logger.DEBUG(photos,null,{ fileName : "GalleryViewJS.hx", lineNumber : 26, className : "example.module.gallery.view.GalleryViewJS", methodName : "setPhotos"});
+		hex_log_Logger.DEBUG(photos,null,{ fileName : "GalleryViewJS.hx", lineNumber : 24, className : "example.module.gallery.view.GalleryViewJS", methodName : "setPhotos"});
 		var _g = 0;
 		while(_g < photos.length) {
 			var photo = photos[_g];
@@ -1423,12 +1423,10 @@ example_service_flickr_FlickrParser.__name__ = ["example","service","flickr","Fl
 example_service_flickr_FlickrParser.__interfaces__ = [hex_data_IParser];
 example_service_flickr_FlickrParser.prototype = {
 	parse: function(serializedContent,target) {
-		console.log("parse");
 		var jsonString = serializedContent;
 		jsonString = HxOverrides.substr(jsonString,14,null);
 		jsonString = HxOverrides.substr(jsonString,0,-1);
 		var json = JSON.parse(jsonString);
-		console.log(jsonString);
 		var photosList = [];
 		var _g = 0;
 		var _g1 = Reflect.fields(json.photos.photo);
