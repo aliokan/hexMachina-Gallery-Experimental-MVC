@@ -43,7 +43,7 @@ class GalleryModule extends Module implements IGalleryModule
 			flash.Lib.current.addChild( container );
 			this.buildViewHelper( GalleryViewHelper, new example.module.gallery.view.GalleryViewFlash(container) );
 		#elseif js
-			this.buildViewHelper( GalleryViewHelper, new example.module.gallery.view.GalleryViewJS(js.Browser.document.querySelector(".gallery") ) );
+			this.buildViewHelper( GalleryViewHelper, new example.module.gallery.view.GalleryViewJS( js.Browser.document.querySelector(".gallery") ) );
 		#else 
 			#error  // will display an error "Not implemented on this platform"
 		#end
