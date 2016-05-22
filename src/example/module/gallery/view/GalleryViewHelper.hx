@@ -10,10 +10,8 @@ import hex.view.viewhelper.ViewHelper;
  * ...
  * @author Andrei Bunulu
  */
-class GalleryViewHelper extends ViewHelper implements IGalleryModelListener
+class GalleryViewHelper extends ViewHelper<IGalleryView> implements IGalleryModelListener
 {
-	var _layoutView : IGalleryView;
-	
 	@Inject
 	var _model : IGalleryModelRO;
 	
@@ -30,7 +28,6 @@ class GalleryViewHelper extends ViewHelper implements IGalleryModelListener
 	{
 		super._initialize();
 		
-		this._layoutView = cast this._view;
 		this._model.addListener( this );
 		this._controller.loadPhotos().onComplete( this.onPhotosLoaded );
 	}
@@ -38,6 +35,6 @@ class GalleryViewHelper extends ViewHelper implements IGalleryModelListener
 	public function onPhotosLoaded( photos : Array<PhotoVO> ) : Void
 	{
 		this.getLogger().info( "onPhotosLoaded" );
-		this._layoutView.setPhotos( photos );
+		this._view.setPhotos( photos );
 	}
 }
