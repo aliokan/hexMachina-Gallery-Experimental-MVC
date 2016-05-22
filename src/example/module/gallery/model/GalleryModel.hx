@@ -15,7 +15,7 @@ class GalleryModel extends Model<GalleryModelDispatcher, IGalleryModelListener> 
 	
 	public function new() 
 	{
-		this.dispatcher = new GalleryModelDispatcher();
+		super();
 	}
 	
 	public function setPhotos( photos : Array<PhotoVO> ) : Void 
